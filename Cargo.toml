@@ -1,0 +1,17 @@
+[package]
+name = "copiosis-rocket"
+version = "0.1.0"
+authors = ["Michal Mauser <michal.mauser@zeitgeistmovement.cz>"]
+
+[dependencies]
+rocket = "0.3.8"
+rocket_codegen = "0.3.8"
+rusqlite = "0.13"
+serde = "1.0"
+serde_derive = "1.0"
+
+[dependencies.rocket_contrib]
+version = "0.3.0"
+default-features = false
+features = ["handlebars_templates"]
+

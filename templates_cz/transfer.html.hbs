@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Copiosis</title>
+</head>
+<body>
+<h1>Copiosis</h1>
+<p>Neoficiální ukázka v raném vývoji</p>
+<p>
+    <a href="/users">Výpis uživatelů</a> &middot;
+    <a href="/products">Výpis produktů</a> &middot;
+    <a href="/transfers">Nejnovější transfery</a>
+    <br>
+    <a href="/adduser">Přidat uživatele</a> &middot;
+    <a href="/addproduct">Přidat produkt</a> &middot;
+    <a href="/transfer">Transfer</a>
+</p>
+<form action="/transfer" method="post" accept-charset="utf-8">
+    <table>
+        <tr>
+            <td>
+                <label for="producer">producent</label>
+            </td>
+            <td>
+                <select name="producer" id="producer" required autofocus>
+                    {{#each users}}
+                        <option value="{{id}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="consumer">konzument</label>
+            </td>
+            <td>
+                <select name="consumer" id="consumer" required>
+                    {{#each users}}
+                        <option value="{{id}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="product">produkt</label>
+            </td>
+            <td>
+                <select name="product" id="product" required>
+                    {{#each products}}
+                        <option value="{{id}}">{{name}}</option>
+                    {{/each}}
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="amount">množství</label>
+            </td>
+            <td>
+                <input type="number" name="amount" id="amount" value="1" min="1" required/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <input type="hidden" name="nbr" value="0"/>
+            </td>
+            <td>
+                <input type="submit" value="transfer"/>
+            </td>
+        </tr>
+    </table>
+</form>
+</body>
+</html>

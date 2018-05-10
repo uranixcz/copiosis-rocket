@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Copiosis</title>
+    <style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 1px 10px;
+    }
+
+    </style>
+</head>
+<body>
+<h1>Copiosis</h1>
+<p>Unofficial early development sample</p>
+<p>
+    <a href="/users">Show users</a> &middot;
+    <a href="/products">Show products</a> &middot;
+    <a href="/transfers">Latest transfers</a>
+    <br>
+    <a href="/adduser">Add user</a> &middot;
+    <a href="/addproduct">Add product</a> &middot;
+    <a href="/transfer">Transfer</a>
+</p>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>NBR</th>
+        <th>Created</th>
+    </tr>
+    {{#each .}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{name}}</td>
+            <td>{{nbr}}</td>
+            <td>{{time_created}}</td>
+        </tr>
+    {{/each}}
+</table>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Copiosis</title>
+    <style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 1px 10px;
+    }
+
+    </style>
+</head>
+<body>
+<h1>Copiosis</h1>
+<p>Neoficiální ukázka v raném vývoji</p>
+<p>
+    <a href="/users">Výpis uživatelů</a> &middot;
+    <a href="/products">Výpis produktů</a> &middot;
+    <a href="/transfers">Nejnovější transfery</a>
+    <br>
+    <a href="/adduser">Přidat uživatele</a> &middot;
+    <a href="/addproduct">Přidat produkt</a> &middot;
+    <a href="/transfer">Transfer</a>
+</p>
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Producent</th>
+        <th>Konzument</th>
+        <th>Produkt</th>
+        <th>Množství</th>
+        <th>NBR</th>
+        <th>Vytvořen</th>
+    </tr>
+    {{#each .}}
+        <tr>
+            <td>{{id}}</td>
+            <td>{{producer}}</td>
+            <td>{{consumer}}</td>
+            <td>{{product}}</td>
+            <td>{{amount}}</td>
+            <td>{{nbr}}</td>
+            <td>{{time_created}}</td>
+        </tr>
+    {{/each}}
+</table>
+</body>
+</html>
