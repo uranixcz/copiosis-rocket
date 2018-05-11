@@ -34,6 +34,7 @@ use rocket::State;
 use rocket::response::Redirect;
 use rocket::request::FlashMessage;
 use rocket::response::Flash;
+use rocket::fairing::AdHoc;
 
 type DbConn = Mutex<Connection>;
 
@@ -127,7 +128,7 @@ fn adduser_page() -> Template {
 }
 
 #[post("/adduser", data = "<user>")]
-fn adduser(user: Form<User>, db_conn: State<DbConn>) -> Flash<Redirect> {
+fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let user = user.into_inner();
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
@@ -136,7 +137,9 @@ fn adduser(user: Form<User>, db_conn: State<DbConn>) -> Flash<Redirect> {
                     &[&user.name, &0, &"0"])
         .expect("insert single entry into products table");
 
-    Flash::success(Redirect::to("/"), "User added.")
+    Flash::success(Redirect::to("/"),
+                   if templatedir.0.eq("templates_cz") { "Uživatel přidán." }
+                            else { "User added." })
 }
 
 #[get("/users")]
@@ -170,7 +173,7 @@ fn addproduct_page() -> Template {
 }
 
 #[post("/addproduct", data = "<product>")]
-fn addproduct(product: Form<Product>, db_conn: State<DbConn>) -> Flash<Redirect> {
+fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
 
@@ -179,7 +182,9 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>) -> Flash<Redirect>
                  &[&product.name, &product.gateway, &product.benefit])
         .expect("insert single entry into products table");
 
-    Flash::success(Redirect::to("/"), "Product added.")
+    Flash::success(Redirect::to("/"),
+                   if templatedir.0.eq("templates_cz") { "Produkt přidán." }
+                            else { "Product added." })
 }
 
 #[get("/products")]
@@ -271,7 +276,7 @@ struct Transfer {
 }
 
 #[post("/transfer", data = "<post>")]
-fn transfer(conn: State<DbConn>, post: Form<Transfer>) -> Flash<Redirect> {
+fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let transfer = post.into_inner();
 
     let product_params:(i64, i64) = conn.lock()
@@ -294,7 +299,9 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>) -> Flash<Redirect> {
         .expect("update consumer entry in transfers table");
 
 
-    Flash::success(Redirect::to("/"), "Transfer COMPLETE.")
+    Flash::success(Redirect::to("/"),
+                   if templatedir.0.eq("templates_cz") { "Transfer proveden." }
+                            else { "Transfer COMPLETE." })
 }
 
 #[derive(Serialize)]
@@ -350,6 +357,8 @@ fn transfers(conn: State<DbConn>) -> Template {
     Template::render("transfers", &transfers)
 }
 
+struct TemplateDir(String);
+
 fn rocket() -> Rocket {
     // Open a new in-memory SQLite database.
     //let conn = Connection::open_in_memory().expect("in memory db");
@@ -361,6 +370,11 @@ fn rocket() -> Rocket {
     // Have Rocket manage the database pool.
     rocket::ignite()
         .attach(Template::fairing())
+        .attach(AdHoc::on_attach(|rocket| {
+            println!("Adding token managed state from config...");
+            let token_val = rocket.config().get_str("template_dir").unwrap_or("").to_string();
+            Ok(rocket.manage(TemplateDir(token_val)))
+        }))
         .manage(Mutex::new(conn))
         .mount("/", routes![index, adduser_page, addproduct_page, addproduct, adduser,
         transfer_page, transfer, transfers, users, products])
