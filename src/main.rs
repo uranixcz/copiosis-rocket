@@ -57,6 +57,27 @@ struct Product {
 }
 
 fn init_database(conn: &Connection) {
+
+    let db_version:i64 = conn.query_row("PRAGMA user_version",&[], |row| {row.get(0)})
+                     .expect("lookup db table version");
+    if db_version == 0 {
+        println!("Upgrading DB version, stand by...");
+        let altered = conn.execute("ALTER TABLE transfers ADD COLUMN GNBR INTEGER NOT NULL DEFAULT 0", &[]).is_ok();
+        if altered {
+            conn.execute("UPDATE transfers SET GNBR = amount * (SELECT products.gateway
+                    FROM products
+                    WHERE products.id = transfers.ProductID )
+                    WHERE EXISTS (
+                    SELECT *
+                    FROM products
+                    WHERE products.id = transfers.ProductID
+                )", &[])
+                .expect("update producer entry in transfers table");
+        }
+            //.expect("alter db add column");
+        conn.execute("PRAGMA user_version = 1", &[])
+            .expect("alter db version");
+    }
     conn.execute("CREATE TABLE IF NOT EXISTS users (
                     id              INTEGER PRIMARY KEY AUTOINCREMENT,
                     name            TEXT NOT NULL,
@@ -65,14 +86,6 @@ fn init_database(conn: &Connection) {
                     time_created    TEXT NOT NULL
                     )", &[])
         .expect("create users table");
-
-    /*conn.execute("INSERT INTO users (name, password, NBR) VALUES ($1, $2, $3)",
-                 &[&"Rocketeer", &"bla", &0])
-        .expect("insert single entry into entries table");
-
-    conn.execute("INSERT INTO users (name, password, NBR) VALUES ($1, $2, $3)",
-                 &[&"Rocketeer1", &"bla1", &0])
-        .expect("insert single entry into entries table");*/
 
     conn.execute("CREATE TABLE IF NOT EXISTS products (
                     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,10 +96,6 @@ fn init_database(conn: &Connection) {
                 )", &[])
         .expect("create products table");
 
-    /*conn.execute("INSERT INTO products (name, gateway, benefit) VALUES ($1, $2, $3)",
-                 &[&"jablka 100g", &0, &5])
-        .expect("insert single entry into entries table");*/
-
     conn.execute("CREATE TABLE IF NOT EXISTS transfers (
                     id          INTEGER PRIMARY KEY AUTOINCREMENT,
                     ConsumerID     INTEGER NOT NULL,
@@ -94,18 +103,10 @@ fn init_database(conn: &Connection) {
                     ProductID  INTEGER NOT NULL,
                     amount     INTEGER NOT NULL,
                     NBR        INTEGER NOT NULL,
+                    GNBR       INTEGER NOT NULL,
                     time_created    TEXT NOT NULL
                 )", &[])
         .expect("create withdrawals table");
-
-    /*conn.execute("CREATE TABLE offers (
-                    id          INTEGER PRIMARY KEY,
-                    user_id     INTEGER NOT NULL,
-                    product_id  INTEGER NOT NULL,
-                    quantity    INTEGER NOT NULL,
-                    is_complete INTEGER NOT NULL
-                )", &[])
-        .expect("create offers table");*/
 }
 
 #[get("/")]
@@ -287,9 +288,10 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
 
     let tmpconn = conn.lock()
         .expect("db connection lock");
-    tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, time_created)\
-    VALUES ($1, $2, $3, $4, $5, datetime('now', 'localtime'))",
-                 &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount, &(product_params.1 * transfer.amount)])
+    tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
+    VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
+                 &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
+                     &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
         .expect("insert single entry into transfers table");
     tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
                     &[&(product_params.1 * transfer.amount), &transfer.producer])
@@ -357,6 +359,38 @@ fn transfers(conn: State<DbConn>) -> Template {
     Template::render("transfers", &transfers)
 }
 
+#[derive(FromForm)]
+struct Delete {
+    id: i64
+}
+
+#[post("/deletetransfer", data = "<post>")]
+fn delete_transfer(conn: State<DbConn>, post: Form<Delete>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+    let transfer = post.into_inner();
+
+    let tmpconn = conn.lock()
+        .expect("db connection lock");
+
+    let transfer_params:(i64, i64, i64, i64) = tmpconn.query_row("SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",
+                   &[&transfer.id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
+        .expect("product does not exist");
+
+
+    tmpconn.execute("DELETE FROM transfers WHERE id = $1",
+                    &[&transfer.id])
+        .expect("delete single entry from transfers table");
+    tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
+                    &[&transfer_params.2, &transfer_params.0])
+        .expect("update producer entry in transfers table");
+    tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
+                    &[&transfer_params.3, &transfer_params.1])
+        .expect("update producer entry in transfers table");
+
+    Flash::success(Redirect::to("/"),
+                   if templatedir.0.eq("templates_cz") { "Transfer smazán." }
+                       else { "Transfer deleted." })
+}
+
 struct TemplateDir(String);
 
 fn rocket() -> Rocket {
@@ -367,8 +401,7 @@ fn rocket() -> Rocket {
     // Initialize the `entries` table in the database.
     init_database(&conn);
 
-    // Have Rocket manage the database pool.
-    rocket::ignite()
+    let rct = rocket::ignite()
         .attach(Template::fairing())
         .attach(AdHoc::on_attach(|rocket| {
             println!("Adding token managed state from config...");
@@ -377,7 +410,16 @@ fn rocket() -> Rocket {
         }))
         .manage(Mutex::new(conn))
         .mount("/", routes![index, adduser_page, addproduct_page, addproduct, adduser,
-        transfer_page, transfer, transfers, users, products])
+        transfer_page, transfer, transfers, users, products, delete_transfer]);
+
+    let mut cnt = 0;
+    while cnt < 25 {
+        println!();
+        cnt = cnt + 1;
+    }
+    println!("Please open http://localhost:8000 in web browser.\n");
+
+    rct
 }
 
 fn main() {

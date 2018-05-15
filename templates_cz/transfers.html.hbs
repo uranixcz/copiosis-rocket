@@ -34,6 +34,7 @@
         <th>Množství</th>
         <th>NBR</th>
         <th>Vytvořen</th>
+        <th>Operace</th>
     </tr>
     {{#each .}}
         <tr>
@@ -44,6 +45,10 @@
             <td>{{amount}}</td>
             <td>{{nbr}}</td>
             <td>{{time_created}}</td>
+            <td><form action="/deletetransfer" method="post" accept-charset="utf-8">
+                <input type="hidden" name="id" value="{{id}}">
+                <input type="submit" value="Delete"></form>
+            </td>
         </tr>
     {{/each}}
 </table>
