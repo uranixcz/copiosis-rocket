@@ -6,7 +6,7 @@
     <title>Copiosis</title>
 </head>
 <body>
-<h1>Copiosis</h1>
+<h1>Copiosis admin</h1>
 <p>Unofficial early development sample</p>
 <p>
     <a href="/users">Show users</a> &middot;
@@ -18,36 +18,93 @@
     <a href="/transfer">Transfer</a>
 </p>
 <form action="/addproduct" method="post" accept-charset="utf-8">
-    <!--<input type="hidden" name="id" value="0" />-->
     <table>
         <tr>
-            <td>
-                <label for="name">product name</label>
-            </td>
-            <td>
-                <input type="text" name="name" id="name" value="" required autofocus />
-            </td>
+            <td><label for="name">product name</label></td>
+            <td></td><td><input type="text" name="name" id="name" value="" required autofocus /></td><td></td>
         </tr>
         <tr>
-            <td>
-                <label for="gateway">gateway</label>
-            </td>
-            <td>
-                <input type="number" name="gateway" id="gateway" value="0" min="0" required />
-            </td>
+            <td><label for="gateway">gateway</label></td>
+            <td></td><td><input type="number" name="gateway" id="gateway" value="0" min="0" required /></td><td></td>
+        </tr><tr><td colspan="4"><hr><td></td></tr>
+
+        <tr>
+            <td><label for="resabundance">resource abundance</label></td>
+            <td>1</td><td><input type="range" name="resabundance" id="resabundance" value="1" min="1" max="255" step="1" required /></td><td>255</td>
         </tr>
         <tr>
-            <td>
-                <label for="benefit">benefit</label>
-            </td>
-            <td>
-                <input type="number" name="benefit" id="benefit" value="1" required />
-            </td>
+            <td><label for="resabundancetun">max. resource abundance</label></td>
+            <td>1</td><td><input type="range" name="resabundancetun" id="resabundancetun" value="1" min="1" max="255" step="1" required /></td><td>255</td>
         </tr>
+        <tr>
+            <td><label for="prodpop">producer population</label></td>
+            <td>1</td><td><input type="range" name="prodpop" id="prodpop" value="1" min="1" max="255" step="1" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="consdem">consumer demand</label></td>
+            <td>1</td><td><input type="range" name="consdem" id="consdem" value="1" min="1" max="255" step="1" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="proddembalance">production demand balance tun.</label></td>
+            <td></td><td><input type="number" name="proddembalance" id="proddembalance" value="1" min="0" required /></td><td></td>
+        </tr><tr><td colspan="4"><hr></td></tr>
+
+        <tr>
+            <td><label for="conssubsat">consumer subjective satisfaction</label></td>
+            <td>-2</td><td><input type="range" name="conssubsat" id="conssubsat" value="0" min="-2" max="2" step="2" required /></td><td>2</td>
+        </tr>
+        <tr>
+            <td><label for="conssubsattun">consumer subj. satisfaction tun.</label></td>
+            <td>1</td><td><input type="range" name="conssubsattun" id="conssubsattun" value="1" min="1" max="2" required /></td><td>2</td>
+        </tr>
+        <tr>
+            <td><label for="consobjben">consumer objective benefit</label></td>
+            <td>-255</td><td><input type="range" name="consobjben" id="consobjben" value="0" min="-255" max="255" step="1" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="consobjbentun">consumer objective benefit tun.</label></td>
+            <td>1</td><td><input type="range" name="consobjbentun" id="consobjbentun" value="1" min="1" max="255" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="consbenefit">consumer benefit tuning</label></td>
+            <td></td><td><input type="number" name="consbenefit" id="consbenefit" value="1" min="0" required /></td><td></td>
+        </tr><tr><td colspan="4"><hr></td></tr>
+
+        <tr>
+            <td><label for="socbenefit">social benefit</label></td>
+            <td>1</td><td><input type="range" name="socbenefit" id="socbenefit" value="1" min="1" max="6" step="1" required /></td><td>6</td>
+        </tr>
+        <tr>
+            <td><label for="socbenefittun">social benefit tuning</label></td>
+            <td>1</td><td><input type="range" name="socbenefittun" id="socbenefittun" value="1" min="1" max="6" required /></td><td>6</td>
+        </tr>
+        <tr>
+            <td><label for="enveffect">environmental benefit</label></td>
+            <td>-255</td><td><input type="range" name="enveffect" id="enveffect" value="0" min="-255" max="255" step="1" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="enveffecttun">environmental benefit tun.</label></td>
+            <td>1</td><td><input type="range" name="enveffecttun" id="enveffecttun" value="1" min="1" max="255" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="humaneffect">human effect</label></td>
+            <td>-255</td><td><input type="range" name="humaneffect" id="humaneffect" value="0" min="-255" max="255" step="1" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="humaneffecttun">human effect tun.</label></td>
+            <td>1</td><td><input type="range" name="humaneffecttun" id="humaneffecttun" value="1" min="1" max="255" required /></td><td>255</td>
+        </tr>
+        <tr>
+            <td><label for="envbenefit">environmental benefit tuning</label></td>
+            <td></td><td><input type="number" name="envbenefit" id="envbenefit" value="1" min="0" required /></td><td></td>
+        </tr><tr><td colspan="4"><hr><td></td></tr>
+
         <tr>
             <td><input type="hidden" name="id" value="0"/>
-                <input type="hidden" name="time_created" value="0"/></td>
-            <td><input type="submit" value="add" /></td></tr>
+                <input type="hidden" name="time_created" value="0"/>
+                <input type="hidden" name="benefit" value="0" /></td>
+            <td></td><td><input type="submit" value="add" /></td><td></td>
+        </tr>
     </table>
 </form>
 </body>

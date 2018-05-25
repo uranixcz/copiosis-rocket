@@ -54,14 +54,35 @@ struct Product {
     gateway: i64,
     benefit: i64,
     time_created: String,
+    resabundance: i64,
+    resabundancetun: i64,
+    prodpop: i64,
+    consdem: i64,
+    proddembalance: i64,
+    conssubsat: i64,
+    conssubsattun: i64,
+    consobjben: i64,
+    consobjbentun: i64,
+    consbenefit: i64,
+    socbenefit: i64,
+    socbenefittun: i64,
+    enveffect: i64,
+    enveffecttun: i64,
+    humaneffect: i64,
+    humaneffecttun: i64,
+    envbenefit: i64,
 }
 
 fn init_database(conn: &Connection) {
 
+    fn upgrade_message(version: usize) {
+        println!("Upgrading DB version {}, stand by...", version);
+    }
+
     let db_version:i64 = conn.query_row("PRAGMA user_version",&[], |row| {row.get(0)})
                      .expect("lookup db table version");
     if db_version == 0 {
-        println!("Upgrading DB version, stand by...");
+        upgrade_message(0);
         let altered = conn.execute("ALTER TABLE transfers ADD COLUMN GNBR INTEGER NOT NULL DEFAULT 0", &[]).is_ok();
         if altered {
             conn.execute("UPDATE transfers SET GNBR = amount * (SELECT products.gateway
@@ -78,6 +99,44 @@ fn init_database(conn: &Connection) {
         conn.execute("PRAGMA user_version = 1", &[])
             .expect("alter db version");
     }
+    if db_version == 1 {
+        upgrade_message(1);
+        conn.execute("CREATE TABLE IF NOT EXISTS transfers2 (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ConsumerID     INTEGER NOT NULL,
+                    ProducerID INTEGER NOT NULL,
+                    ProductID  INTEGER NOT NULL,
+                    amount     INTEGER NOT NULL,
+                    NBR        INTEGER NOT NULL,
+                    time_created    TEXT NOT NULL,
+                    GNBR       INTEGER NOT NULL
+                )", &[]).expect("alter db modify column");
+        conn.execute("INSERT INTO transfers2 SELECT * FROM transfers", &[]).expect("alter db modify column");
+        conn.execute("DROP TABLE transfers", &[]).expect("alter db modify column");
+        conn.execute("ALTER TABLE transfers2 RENAME TO transfers", &[]).expect("alter db modify column");
+
+        conn.execute("ALTER TABLE products ADD COLUMN resabundance INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN resabundancetun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN prodpop INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN consdem INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN proddembalance INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN conssubsat INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN conssubsattun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN consobjben INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN consobjbentun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN consbenefit INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN socbenefit INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN socbenefittun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN enveffect INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN enveffecttun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN humaneffect INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN humaneffecttun INTEGER", &[]).expect("alter db add column");
+        conn.execute("ALTER TABLE products ADD COLUMN envbenefit INTEGER", &[]).expect("alter db add column");
+
+        conn.execute("PRAGMA user_version = 2", &[])
+            .expect("alter db version");
+    }
+
     conn.execute("CREATE TABLE IF NOT EXISTS users (
                     id              INTEGER PRIMARY KEY AUTOINCREMENT,
                     name            TEXT NOT NULL,
@@ -92,7 +151,24 @@ fn init_database(conn: &Connection) {
                     name        TEXT NOT NULL,
                     gateway     INTEGER NOT NULL,
                     benefit     INTEGER NOT NULL,
-                    time_created    TEXT NOT NULL
+                    time_created    TEXT NOT NULL,
+                    resabundance    INTEGER,
+                    resabundancetun INTEGER,
+                    prodpop     INTEGER,
+                    consdem     INTEGER,
+                    proddembalance  INTEGER,
+                    conssubsat  INTEGER,
+                    conssubsattun   INTEGER,
+                    consobjben  INTEGER,
+                    consobjbentun   INTEGER,
+                    consbenefit  INTEGER,
+                    socbenefit  INTEGER,
+                    socbenefittun   INTEGER,
+                    enveffect  INTEGER,
+                    enveffecttun   INTEGER,
+                    humaneffect INTEGER,
+                    humaneffecttun  INTEGER,
+                    envbenefit INTEGER
                 )", &[])
         .expect("create products table");
 
@@ -103,8 +179,8 @@ fn init_database(conn: &Connection) {
                     ProductID  INTEGER NOT NULL,
                     amount     INTEGER NOT NULL,
                     NBR        INTEGER NOT NULL,
-                    GNBR       INTEGER NOT NULL,
-                    time_created    TEXT NOT NULL
+                    time_created    TEXT NOT NULL,
+                    GNBR       INTEGER NOT NULL
                 )", &[])
         .expect("create withdrawals table");
 }
@@ -134,12 +210,13 @@ fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<Template
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
 
-    tmpconn.execute("INSERT INTO users (name, NBR, password, time_created) VALUES ($1, $2, $3, datetime('now', 'localtime'))",
+    tmpconn.execute("INSERT INTO users (name, NBR, password, time_created)\
+    VALUES ($1, $2, $3, datetime('now', 'localtime'))",
                     &[&user.name, &0, &"0"])
         .expect("insert single entry into products table");
 
     Flash::success(Redirect::to("/"),
-                   if templatedir.0.eq("templates_cz") { "Uživatel přidán." }
+                   if templatedir.0 { "Uživatel přidán." }
                             else { "User added." })
 }
 
@@ -178,13 +255,25 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
 
-    let product = product.into_inner();
-    tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created)VALUES ($1, $2, $3, datetime('now', 'localtime'))",
-                 &[&product.name, &product.gateway, &product.benefit])
+    let p = product.into_inner();
+
+    let benefit = p.proddembalance * (p.resabundance / p.resabundancetun + p.consdem / p.prodpop)
+        + p.consbenefit * (p.conssubsat / p.conssubsattun * p.consobjben / p.consobjbentun)
+        + p.envbenefit * (p.socbenefit / p.socbenefittun + p.enveffect / p.enveffecttun + p.humaneffect / p.humaneffecttun);
+
+    tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created,
+    resabundance, resabundancetun, prodpop, consdem, proddembalance, conssubsat, conssubsattun,
+    consobjben, consobjbentun, consbenefit, socbenefit, socbenefittun, enveffect, enveffecttun,
+    humaneffect, humaneffecttun, envbenefit)
+    VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)",
+                    &[&p.name, &p.gateway, &benefit,
+                        &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
+                        &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
+                        &p.humaneffect, &p.humaneffecttun, &p.envbenefit])
         .expect("insert single entry into products table");
 
     Flash::success(Redirect::to("/"),
-                   if templatedir.0.eq("templates_cz") { "Produkt přidán." }
+                   if templatedir.0 { "Produkt přidán." }
                             else { "Product added." })
 }
 
@@ -203,6 +292,23 @@ fn products(db_conn: State<DbConn>) -> Template {
             gateway: row.get(2),
             benefit: row.get(3),
             time_created: row.get(4),
+            resabundance: 0,
+            resabundancetun: 0,
+            prodpop: 0,
+            consdem: 0,
+            proddembalance: 0,
+            conssubsat: 0,
+            conssubsattun: 0,
+            consobjben: 0,
+            consobjbentun: 0,
+            consbenefit: 0,
+            socbenefit: 0,
+            socbenefittun: 0,
+            enveffect: 0,
+            enveffecttun: 0,
+            humaneffect: 0,
+            humaneffecttun: 0,
+            envbenefit: 0,
         }
     }).unwrap();
 
@@ -280,14 +386,14 @@ struct Transfer {
 fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let transfer = post.into_inner();
 
-    let product_params:(i64, i64) = conn.lock()
-        .expect("db connection lock")
-        .query_row("SELECT gateway, benefit FROM products WHERE id = $1",
+    let tmpconn = conn.lock()
+        .expect("db connection lock");
+
+    let product_params:(i64, i64) = tmpconn.query_row("SELECT gateway, benefit FROM products WHERE id = $1",
                    &[&transfer.product], |row| { (row.get(0), row.get(1)) })
         .expect("product does not exist");
 
-    let tmpconn = conn.lock()
-        .expect("db connection lock");
+
     tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
     VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
                  &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
@@ -302,7 +408,7 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
 
 
     Flash::success(Redirect::to("/"),
-                   if templatedir.0.eq("templates_cz") { "Transfer proveden." }
+                   if templatedir.0 { "Transfer proveden." }
                             else { "Transfer COMPLETE." })
 }
 
@@ -371,8 +477,9 @@ fn delete_transfer(conn: State<DbConn>, post: Form<Delete>, templatedir: State<T
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
-    let transfer_params:(i64, i64, i64, i64) = tmpconn.query_row("SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",
-                   &[&transfer.id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
+    let transfer_params: (i64, i64, i64, i64) = tmpconn.query_row(
+        "SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",
+        &[&transfer.id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
         .expect("product does not exist");
 
 
@@ -387,11 +494,11 @@ fn delete_transfer(conn: State<DbConn>, post: Form<Delete>, templatedir: State<T
         .expect("update producer entry in transfers table");
 
     Flash::success(Redirect::to("/"),
-                   if templatedir.0.eq("templates_cz") { "Transfer smazán." }
+                   if templatedir.0 { "Transfer smazán." }
                        else { "Transfer deleted." })
 }
 
-struct TemplateDir(String);
+struct TemplateDir(bool);
 
 fn rocket() -> Rocket {
     // Open a new in-memory SQLite database.
@@ -406,17 +513,13 @@ fn rocket() -> Rocket {
         .attach(AdHoc::on_attach(|rocket| {
             println!("Adding token managed state from config...");
             let token_val = rocket.config().get_str("template_dir").unwrap_or("").to_string();
-            Ok(rocket.manage(TemplateDir(token_val)))
+            Ok(rocket.manage(TemplateDir(token_val.ne(""))))
         }))
         .manage(Mutex::new(conn))
         .mount("/", routes![index, adduser_page, addproduct_page, addproduct, adduser,
         transfer_page, transfer, transfers, users, products, delete_transfer]);
 
-    let mut cnt = 0;
-    while cnt < 25 {
-        println!();
-        cnt = cnt + 1;
-    }
+    println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     println!("Please open http://localhost:8000 in web browser.\n");
 
     rct
