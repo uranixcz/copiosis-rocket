@@ -19,10 +19,10 @@
 <p>
     <a href="/users">Show users</a> &middot;
     <a href="/products">Show products</a> &middot;
-    <a href="/transfers">Latest transfers</a>
+    <b><a href="/transfers">Latest transfers</a></b>
     <br>
     <a href="/adduser">Add user</a> &middot;
-    <a href="/addproduct">Add product</a> &middot;
+    <a href="/product">Add product</a> &middot;
     <a href="/transfer">Transfer</a>
 </p>
 <table>
@@ -33,6 +33,7 @@
         <th>Product</th>
         <th>Amount</th>
         <th>NBR</th>
+        <th>-NBR</th>
         <th>Created</th>
         <th>Operation</th>
     </tr>
@@ -44,11 +45,9 @@
             <td>{{product}}</td>
             <td>{{amount}}</td>
             <td>{{nbr}}</td>
+            <td>{{gnbr}}</td>
             <td>{{time_created}}</td>
-            <td><form action="/deletetransfer" method="post" accept-charset="utf-8">
-                <input type="hidden" name="id" value="{{id}}">
-                <input type="submit" value="Delete"></form>
-            </td>
+            <td><a href="/deletetransfer/{{id}}">Delete</a></td>
         </tr>
     {{/each}}
 </table>

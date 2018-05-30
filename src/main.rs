@@ -94,10 +94,59 @@ fn init_database(conn: &Connection) {
                     WHERE products.id = transfers.ProductID
                 )", &[])
                 .expect("update producer entry in transfers table");
+            conn.execute("PRAGMA user_version = 1", &[])
+                .expect("alter db version");
+        } else {
+            conn.execute("CREATE TABLE IF NOT EXISTS users (
+                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name            TEXT NOT NULL,
+                    NBR             INTEGER NOT NULL,
+                    password        TEXT NOT NULL,
+                    time_created    TEXT NOT NULL
+                    )", &[])
+                .expect("create users table");
+
+            conn.execute("CREATE TABLE IF NOT EXISTS products (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name        TEXT NOT NULL,
+                    gateway     INTEGER NOT NULL,
+                    benefit     INTEGER NOT NULL,
+                    time_created    TEXT NOT NULL,
+                    resabundance    INTEGER,
+                    resabundancetun INTEGER,
+                    prodpop     INTEGER,
+                    consdem     INTEGER,
+                    proddembalance  INTEGER,
+                    conssubsat  INTEGER,
+                    conssubsattun   INTEGER,
+                    consobjben  INTEGER,
+                    consobjbentun   INTEGER,
+                    consbenefit  INTEGER,
+                    socbenefit  INTEGER,
+                    socbenefittun   INTEGER,
+                    enveffect  INTEGER,
+                    enveffecttun   INTEGER,
+                    humaneffect INTEGER,
+                    humaneffecttun  INTEGER,
+                    envbenefit INTEGER
+                )", &[])
+                .expect("create products table");
+
+            conn.execute("CREATE TABLE IF NOT EXISTS transfers (
+                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ConsumerID     INTEGER NOT NULL,
+                    ProducerID INTEGER NOT NULL,
+                    ProductID  INTEGER NOT NULL,
+                    amount     INTEGER NOT NULL,
+                    NBR        INTEGER NOT NULL,
+                    time_created    TEXT NOT NULL,
+                    GNBR       INTEGER NOT NULL
+                )", &[])
+                .expect("create withdrawals table");
+            conn.execute("PRAGMA user_version = 2", &[])
+                .expect("alter db version");
         }
-            //.expect("alter db add column");
-        conn.execute("PRAGMA user_version = 1", &[])
-            .expect("alter db version");
+
     }
     if db_version == 1 {
         upgrade_message(1);
@@ -136,53 +185,6 @@ fn init_database(conn: &Connection) {
         conn.execute("PRAGMA user_version = 2", &[])
             .expect("alter db version");
     }
-
-    conn.execute("CREATE TABLE IF NOT EXISTS users (
-                    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name            TEXT NOT NULL,
-                    NBR             INTEGER NOT NULL,
-                    password        TEXT NOT NULL,
-                    time_created    TEXT NOT NULL
-                    )", &[])
-        .expect("create users table");
-
-    conn.execute("CREATE TABLE IF NOT EXISTS products (
-                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name        TEXT NOT NULL,
-                    gateway     INTEGER NOT NULL,
-                    benefit     INTEGER NOT NULL,
-                    time_created    TEXT NOT NULL,
-                    resabundance    INTEGER,
-                    resabundancetun INTEGER,
-                    prodpop     INTEGER,
-                    consdem     INTEGER,
-                    proddembalance  INTEGER,
-                    conssubsat  INTEGER,
-                    conssubsattun   INTEGER,
-                    consobjben  INTEGER,
-                    consobjbentun   INTEGER,
-                    consbenefit  INTEGER,
-                    socbenefit  INTEGER,
-                    socbenefittun   INTEGER,
-                    enveffect  INTEGER,
-                    enveffecttun   INTEGER,
-                    humaneffect INTEGER,
-                    humaneffecttun  INTEGER,
-                    envbenefit INTEGER
-                )", &[])
-        .expect("create products table");
-
-    conn.execute("CREATE TABLE IF NOT EXISTS transfers (
-                    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                    ConsumerID     INTEGER NOT NULL,
-                    ProducerID INTEGER NOT NULL,
-                    ProductID  INTEGER NOT NULL,
-                    amount     INTEGER NOT NULL,
-                    NBR        INTEGER NOT NULL,
-                    time_created    TEXT NOT NULL,
-                    GNBR       INTEGER NOT NULL
-                )", &[])
-        .expect("create withdrawals table");
 }
 
 #[get("/")]
@@ -245,12 +247,76 @@ fn users(db_conn: State<DbConn>) -> Template {
     Template::render("users", vct)
 }
 
-#[get("/addproduct")]
+#[get("/product")]
 fn addproduct_page() -> Template {
-    Template::render("addproduct", "")
+    let product = Product {
+        id: 0,
+        name: String::new(),
+        gateway: 0,
+        benefit: 0,
+        time_created: String::new(),
+        resabundance: 1,
+        resabundancetun: 1,
+        prodpop: 1,
+        consdem: 1,
+        proddembalance: 1,
+        conssubsat: 0,
+        conssubsattun: 1,
+        consobjben: 0,
+        consobjbentun: 1,
+        consbenefit: 1,
+        socbenefit: 1,
+        socbenefittun: 1,
+        enveffect: 0,
+        enveffecttun: 1,
+        humaneffect: 0,
+        humaneffecttun: 1,
+        envbenefit: 1,
+    };
+    Template::render("addproduct", product)
 }
 
-#[post("/addproduct", data = "<product>")]
+#[get("/product/<product_id>")]
+fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
+    let tmpconn = db_conn.lock()
+        .expect("db connection lock");
+    let product: Product = tmpconn.query_row("SELECT id, name, gateway,
+    resabundance, resabundancetun, prodpop, consdem, proddembalance, conssubsat, conssubsattun,
+    consobjben, consobjbentun, consbenefit, socbenefit, socbenefittun, enveffect, enveffecttun,
+    humaneffect, humaneffecttun, envbenefit
+    FROM products WHERE id = $1", &[&product_id],
+    |row| {
+        Product {
+            id: row.get(0),
+            name: row.get(1),
+            gateway: row.get(2),
+            benefit: 0,
+            time_created: String::new(),
+            resabundance: row.get_checked(3).unwrap_or(1),
+            resabundancetun: row.get_checked(4).unwrap_or(1),
+            prodpop: row.get_checked(5).unwrap_or(1),
+            consdem: row.get_checked(6).unwrap_or(1),
+            proddembalance: row.get_checked(7).unwrap_or(1),
+            conssubsat: row.get_checked(8).unwrap_or(0),
+            conssubsattun: row.get_checked(9).unwrap_or(1),
+            consobjben: row.get_checked(10).unwrap_or(0),
+            consobjbentun: row.get_checked(11).unwrap_or(1),
+            consbenefit: row.get_checked(12).unwrap_or(1),
+            socbenefit: row.get_checked(13).unwrap_or(1),
+            socbenefittun: row.get_checked(14).unwrap_or(1),
+            enveffect: row.get_checked(15).unwrap_or(0),
+            enveffecttun: row.get_checked(16).unwrap_or(1),
+            humaneffect: row.get_checked(17).unwrap_or(0),
+            humaneffecttun: row.get_checked(18).unwrap_or(1),
+            envbenefit: row.get_checked(19).unwrap_or(1),
+        }
+    }).expect("get product from db");
+
+    Template::render("addproduct", product)
+
+}
+
+#[post("/product", data = "<product>")]
 fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
@@ -261,20 +327,35 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
         + p.consbenefit * (p.conssubsat / p.conssubsattun * p.consobjben / p.consobjbentun)
         + p.envbenefit * (p.socbenefit / p.socbenefittun + p.enveffect / p.enveffecttun + p.humaneffect / p.humaneffecttun);
 
-    tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created,
+    if p.id == 0 {
+        tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created,
     resabundance, resabundancetun, prodpop, consdem, proddembalance, conssubsat, conssubsattun,
     consobjben, consobjbentun, consbenefit, socbenefit, socbenefittun, enveffect, enveffecttun,
     humaneffect, humaneffecttun, envbenefit)
     VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)",
-                    &[&p.name, &p.gateway, &benefit,
-                        &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
-                        &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
-                        &p.humaneffect, &p.humaneffecttun, &p.envbenefit])
-        .expect("insert single entry into products table");
+                        &[&p.name, &p.gateway, &benefit,
+                            &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
+                            &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
+                            &p.humaneffect, &p.humaneffecttun, &p.envbenefit])
+            .expect("insert single entry into products table");
 
-    Flash::success(Redirect::to("/"),
-                   if templatedir.0 { "Produkt přidán." }
-                            else { "Product added." })
+        Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Produkt přidán." } else { "Product added." })
+    } else {
+        tmpconn.execute("UPDATE products SET name = $1, gateway = $2, benefit = $3,
+    resabundance = $4, resabundancetun = $5, prodpop = $6, consdem = $7, proddembalance = $8, conssubsat = $9, conssubsattun = $10,
+    consobjben = $11, consobjbentun = $12, consbenefit = $13, socbenefit = $14, socbenefittun = $15, enveffect = $16, enveffecttun = $17,
+    humaneffect = $18, humaneffecttun = $19, envbenefit = $20
+    WHERE id = $21",
+                        &[&p.name, &p.gateway, &benefit,
+                            &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
+                            &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
+                            &p.humaneffect, &p.humaneffecttun, &p.envbenefit, &p.id])
+            .expect("update entry in products table");
+
+        Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Produkt upraven." } else { "Product modified." })
+    }
 }
 
 #[get("/products")]
@@ -421,6 +502,7 @@ struct NamedTransfer {
     amount: i64,
     nbr: i64,
     time_created: String,
+    gnbr: i64
 }
 
 #[get("/transfers")]
@@ -439,6 +521,7 @@ fn transfers(conn: State<DbConn>) -> Template {
 	    , t2.amount
 	    , t2.NBR
         , t2.time_created
+        , t2.GNBR
         FROM   transfers t2
         LEFT   JOIN users t31 ON t31.id = t2.ConsumerID
         LEFT   JOIN users t32 ON t32.id = t2.ProducerID
@@ -455,6 +538,7 @@ fn transfers(conn: State<DbConn>) -> Template {
                 amount: row.get(6),
                 nbr: row.get(7),
                 time_created: row.get(8),
+                gnbr: row.get(9)
             }
         }).unwrap();
         for transfer in transfer_iter {
@@ -465,26 +549,20 @@ fn transfers(conn: State<DbConn>) -> Template {
     Template::render("transfers", &transfers)
 }
 
-#[derive(FromForm)]
-struct Delete {
-    id: i64
-}
-
-#[post("/deletetransfer", data = "<post>")]
-fn delete_transfer(conn: State<DbConn>, post: Form<Delete>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
-    let transfer = post.into_inner();
+#[get("/deletetransfer/<transfer_id>")]
+fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State<TemplateDir>) -> Flash<Redirect> {
 
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
     let transfer_params: (i64, i64, i64, i64) = tmpconn.query_row(
         "SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",
-        &[&transfer.id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
+        &[&transfer_id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
         .expect("product does not exist");
 
 
     tmpconn.execute("DELETE FROM transfers WHERE id = $1",
-                    &[&transfer.id])
+                    &[&transfer_id])
         .expect("delete single entry from transfers table");
     tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
                     &[&transfer_params.2, &transfer_params.0])
@@ -516,7 +594,7 @@ fn rocket() -> Rocket {
             Ok(rocket.manage(TemplateDir(token_val.ne(""))))
         }))
         .manage(Mutex::new(conn))
-        .mount("/", routes![index, adduser_page, addproduct_page, addproduct, adduser,
+        .mount("/", routes![index, adduser_page, addproduct_page, addproduct, product_page, adduser,
         transfer_page, transfer, transfers, users, products, delete_transfer]);
 
     println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
