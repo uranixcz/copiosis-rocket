@@ -414,14 +414,14 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
 
     let mut users = Vec::new();
     let mut stmt = tmpconn
-        .prepare("SELECT id, name FROM users")
+        .prepare("SELECT id, name, NBR FROM users")
         .unwrap();
     {
         let user_iter = stmt.query_map(&[], |row| {
             User {
                 id: row.get(0),
                 name: row.get(1),
-                nbr: 0,
+                nbr: row.get(2),
                 time_created: String::new(),
             }
         }).unwrap();
@@ -430,13 +430,13 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
         }
     }
     stmt = tmpconn
-        .prepare("SELECT id, name FROM products")
+        .prepare("SELECT id, name, gateway FROM products")
         .unwrap();
     let item_iter = stmt.query_map(&[], |row| {
         User { //yes, this is on purpose to save data
             id: row.get(0),
             name: row.get(1),
-            nbr: 0,
+            nbr: row.get(2),
             time_created: String::new(),
         }
     }).unwrap();
