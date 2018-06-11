@@ -422,7 +422,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
                 id: row.get(0),
                 name: row.get(1),
                 nbr: 0,
-                time_created: String::from(""),
+                time_created: String::new(),
             }
         }).unwrap();
         for user in user_iter {
@@ -437,7 +437,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
             id: row.get(0),
             name: row.get(1),
             nbr: 0,
-            time_created: String::from(""),
+            time_created: String::new(),
         }
     }).unwrap();
     let mut products = Vec::new();
