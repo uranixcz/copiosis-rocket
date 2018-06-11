@@ -488,7 +488,7 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                     &[&(product_params.0 * transfer.amount), &transfer.consumer])
         .expect("update consumer entry in transfers table");
 
-    if nbr - product_params.0 * transfer.amount >= 0 {
+    if nbr - product_params.0 * transfer.amount >= 0 || nbr < 0 {
         Flash::success(Redirect::to("/"),
                        if templatedir.0 { "Transfer proveden." } else { "Transfer complete." })
     } else {
