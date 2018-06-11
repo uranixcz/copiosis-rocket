@@ -460,7 +460,6 @@ struct Transfer {
     consumer: i64,
     product: i64,
     amount: i64,
-    nbr: i64,
 }
 
 #[post("/transfer", data = "<post>")]
@@ -474,7 +473,9 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                    &[&transfer.product], |row| { (row.get(0), row.get(1)) })
         .expect("product does not exist");
 
-
+    let nbr: i64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
+                      &[&transfer.consumer], |row| { row.get(0) })
+        .expect("get nbr for user");
     tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
     VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
                  &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
@@ -487,10 +488,14 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                     &[&(product_params.0 * transfer.amount), &transfer.consumer])
         .expect("update consumer entry in transfers table");
 
-
-    Flash::success(Redirect::to("/"),
-                   if templatedir.0 { "Transfer proveden." }
-                            else { "Transfer COMPLETE." })
+    if nbr - product_params.0 * transfer.amount >= 0 {
+        Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Transfer proveden." } else { "Transfer complete." })
+    } else {
+        Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Konzument je v mínusu! Zvažte prosím zrušení transakce." }
+                           else { "Consumer is in deficit! Please consider cancelling the transaction." })
+    }
 }
 
 #[derive(Serialize)]
