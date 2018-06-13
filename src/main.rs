@@ -185,6 +185,10 @@ fn init_database(conn: &Connection) {
         conn.execute("PRAGMA user_version = 2", &[])
             .expect("alter db version");
     }
+
+    conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)\
+    VALUES (0, '-', 0, 0, datetime('now','localtime'))",&[])
+        .expect("insert single entry into users table");
 }
 
 #[get("/")]
@@ -227,7 +231,7 @@ fn users(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, NBR, time_created FROM users")
+        .prepare("SELECT id, name, NBR, time_created FROM users WHERE id != 0")
         .unwrap();
 
     let user_iter = stmt.query_map(&[], |row| {
@@ -414,7 +418,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
 
     let mut users = Vec::new();
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, NBR FROM users")
+        .prepare("SELECT id, name, NBR FROM users WHERE id != 0")
         .unwrap();
     {
         let user_iter = stmt.query_map(&[], |row| {
@@ -476,10 +480,29 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
     let nbr: i64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
                       &[&transfer.consumer], |row| { row.get(0) })
         .expect("get nbr for user");
+
+    if transfer.consumer == 0 && product_params.0 != 0 {
+        return Flash::success(Redirect::to("/"),
+                              if templatedir.0 { "Systémový uživatel může přijmout pouze produkty s bránou 0. Transfer zamítnut." }
+                                  else { "System user can only accept 0 gateway products. Transfer denied." })
+    }
+
+    if nbr - product_params.0 * transfer.amount < 0 {
+        return Flash::success(Redirect::to("/"),
+                              if templatedir.0 { "Konzument je v mínusu! Transfer zamítnut." }
+                                  else { "Consumer is in deficit! Transfer denied." })
+    }
+
+    if transfer.producer == transfer.consumer {
+        return Flash::success(Redirect::to("/"),
+                              if templatedir.0 { "Konzument a producent nesmí být stejná osoba! Transfer zamítnut." }
+                                  else { "Consumer and producer must not be the same! Transfer denied." })
+    }
+
     tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
     VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
-                 &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
-                     &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
+                    &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
+                        &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
         .expect("insert single entry into transfers table");
     tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
                     &[&(product_params.1 * transfer.amount), &transfer.producer])
@@ -488,14 +511,9 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                     &[&(product_params.0 * transfer.amount), &transfer.consumer])
         .expect("update consumer entry in transfers table");
 
-    if nbr - product_params.0 * transfer.amount >= 0 || nbr < 0 {
-        Flash::success(Redirect::to("/"),
-                       if templatedir.0 { "Transfer proveden." } else { "Transfer complete." })
-    } else {
-        Flash::success(Redirect::to("/"),
-                       if templatedir.0 { "Konzument je v mínusu! Zvažte prosím zrušení transakce." }
-                           else { "Consumer is in deficit! Please consider cancelling the transaction." })
-    }
+    Flash::success(Redirect::to("/"),
+                   if templatedir.0 { "Transfer proveden." } else { "Transfer complete." })
+
 }
 
 #[derive(Serialize)]

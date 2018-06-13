@@ -37,6 +37,7 @@
             </td>
             <td>
                 <select name="consumer" id="consumer" required>
+                    <option value="0">nikdo</option>
                     {{#each users}}
                         <option value="{{id}}">{{name}} ({{nbr}})</option>
                     {{/each}}
