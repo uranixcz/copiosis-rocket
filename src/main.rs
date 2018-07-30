@@ -481,13 +481,7 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                       &[&transfer.consumer], |row| { row.get(0) })
         .expect("get nbr for user");
 
-    if transfer.consumer == 0 && product_params.0 != 0 {
-        return Flash::success(Redirect::to("/"),
-                              if templatedir.0 { "Systémový uživatel může přijmout pouze produkty s bránou 0. Transfer zamítnut." }
-                                  else { "System user can only accept 0 gateway products. Transfer denied." })
-    }
-
-    if nbr - product_params.0 * transfer.amount < 0 {
+    if nbr - product_params.0 * transfer.amount < 0 && transfer.consumer != 0 {
         return Flash::success(Redirect::to("/"),
                               if templatedir.0 { "Konzument je v mínusu! Transfer zamítnut." }
                                   else { "Consumer is in deficit! Transfer denied." })
@@ -499,17 +493,27 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
                                   else { "Consumer and producer must not be the same! Transfer denied." })
     }
 
-    tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
+    if transfer.consumer != 0 {
+        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
     VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
-                    &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
-                        &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
-        .expect("insert single entry into transfers table");
+                        &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
+                            &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
+            .expect("insert single entry into transfers table");
+    } else {
+        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
+    VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
+                        &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
+                            &(product_params.1 * transfer.amount), &0])
+            .expect("insert single entry into transfers table");
+    }
     tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
                     &[&(product_params.1 * transfer.amount), &transfer.producer])
         .expect("update producer entry in transfers table");
-    tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
-                    &[&(product_params.0 * transfer.amount), &transfer.consumer])
-        .expect("update consumer entry in transfers table");
+    if transfer.consumer != 0 {
+        tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
+                        &[&(product_params.0 * transfer.amount), &transfer.consumer])
+            .expect("update consumer entry in transfers table");
+    }
 
     Flash::success(Redirect::to("/"),
                    if templatedir.0 { "Transfer proveden." } else { "Transfer complete." })
