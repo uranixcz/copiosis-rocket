@@ -36,6 +36,7 @@
         <th>-NBR</th>
         <th>Created</th>
         <th>Operation</th>
+        <th>Comment</th>
     </tr>
     {{#each .}}
         <tr>
@@ -48,6 +49,7 @@
             <td>{{gnbr}}</td>
             <td>{{time_created}}</td>
             <td><a href="/deletetransfer/{{id}}">Delete</a></td>
+            <td>{{comment}}</td>
         </tr>
     {{/each}}
 </table>

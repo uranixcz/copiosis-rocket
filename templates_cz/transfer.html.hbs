@@ -37,7 +37,7 @@
             </td>
             <td>
                 <select name="consumer" id="consumer" required>
-                    <option value="0">nikdo</option>
+                    <option value="0">nikdo / všichni</option>
                     {{#each users}}
                         <option value="{{id}}">{{name}} ({{nbr}})</option>
                     {{/each}}
@@ -62,6 +62,14 @@
             </td>
             <td>
                 <input type="number" name="amount" id="amount" value="1" min="1" required/>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label for="comment">komentář</label>
+            </td>
+            <td>
+                <input type="text" name="comment" id="comment" />
             </td>
         </tr>
         <tr>

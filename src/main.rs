@@ -185,10 +185,17 @@ fn init_database(conn: &Connection) {
         conn.execute("PRAGMA user_version = 2", &[])
             .expect("alter db version");
     }
+    if db_version == 2 {
+        upgrade_message(2);
+        conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)\
+        VALUES (0, '-', 0, 0, datetime('now','localtime'))", &[])
+            .expect("insert single entry into users table");
 
-    conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)\
-    VALUES (0, '-', 0, 0, datetime('now','localtime'))",&[])
-        .expect("insert single entry into users table");
+        conn.execute("ALTER TABLE transfers ADD COLUMN comment TEXT", &[]).expect("alter db add column");
+
+        conn.execute("PRAGMA user_version = 3", &[])
+            .expect("alter db version");
+    }
 }
 
 #[get("/")]
@@ -418,7 +425,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
 
     let mut users = Vec::new();
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, NBR FROM users WHERE id != 0")
+        .prepare("SELECT id, name, NBR FROM users WHERE id != 0 ORDER BY name")
         .unwrap();
     {
         let user_iter = stmt.query_map(&[], |row| {
@@ -434,7 +441,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
         }
     }
     stmt = tmpconn
-        .prepare("SELECT id, name, gateway FROM products")
+        .prepare("SELECT id, name, gateway FROM products ORDER BY name")
         .unwrap();
     let item_iter = stmt.query_map(&[], |row| {
         User { //yes, this is on purpose to save data
@@ -464,6 +471,7 @@ struct Transfer {
     consumer: i64,
     product: i64,
     amount: i64,
+    comment: String,
 }
 
 #[post("/transfer", data = "<post>")]
@@ -494,16 +502,16 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
     }
 
     if transfer.consumer != 0 {
-        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
-    VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
+        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, comment, time_created)\
+    VALUES ($1, $2, $3, $4, $5, $6, $7, datetime('now', 'localtime'))",
                         &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
-                            &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount)])
+                            &(product_params.1 * transfer.amount), &(product_params.0 * transfer.amount), if transfer.comment.is_empty() { &rusqlite::types::Null} else { &transfer.comment }])
             .expect("insert single entry into transfers table");
     } else {
-        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, time_created)\
-    VALUES ($1, $2, $3, $4, $5, $6, datetime('now', 'localtime'))",
+        tmpconn.execute("INSERT INTO transfers (ProducerID, ConsumerID, ProductID, amount, NBR, GNBR, comment, time_created)\
+    VALUES ($1, $2, $3, $4, $5, $6, $7, datetime('now', 'localtime'))",
                         &[&transfer.producer, &transfer.consumer, &transfer.product, &transfer.amount,
-                            &(product_params.1 * transfer.amount), &0])
+                            &(product_params.1 * transfer.amount), &0, if transfer.comment.is_empty() { &rusqlite::types::Null} else { &transfer.comment }])
             .expect("insert single entry into transfers table");
     }
     tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
@@ -529,7 +537,8 @@ struct NamedTransfer {
     amount: i64,
     nbr: i64,
     time_created: String,
-    gnbr: i64
+    gnbr: i64,
+    comment: String,
 }
 
 #[get("/transfers")]
@@ -549,6 +558,7 @@ fn transfers(conn: State<DbConn>) -> Template {
 	    , t2.NBR
         , t2.time_created
         , t2.GNBR
+        , t2.comment
         FROM   transfers t2
         LEFT   JOIN users t31 ON t31.id = t2.ConsumerID
         LEFT   JOIN users t32 ON t32.id = t2.ProducerID
@@ -565,7 +575,8 @@ fn transfers(conn: State<DbConn>) -> Template {
                 amount: row.get(6),
                 nbr: row.get(7),
                 time_created: row.get(8),
-                gnbr: row.get(9)
+                gnbr: row.get(9),
+                comment: row.get_checked(10).unwrap_or(String::new()),
             }
         }).unwrap();
         for transfer in transfer_iter {
