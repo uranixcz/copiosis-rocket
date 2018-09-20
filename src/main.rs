@@ -79,7 +79,7 @@ fn init_database(conn: &Connection) {
         println!("Upgrading DB version {}, stand by...", version);
     }
 
-    let db_version:i64 = conn.query_row("PRAGMA user_version",&[], |row| {row.get(0)})
+    let mut db_version:i64 = conn.query_row("PRAGMA user_version",&[], |row| {row.get(0)})
                      .expect("lookup db table version");
     if db_version == 0 {
         upgrade_message(0);
@@ -96,6 +96,7 @@ fn init_database(conn: &Connection) {
                 .expect("update producer entry in transfers table");
             conn.execute("PRAGMA user_version = 1", &[])
                 .expect("alter db version");
+            db_version = 1;
         } else {
             conn.execute("CREATE TABLE IF NOT EXISTS users (
                     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,6 +146,7 @@ fn init_database(conn: &Connection) {
                 .expect("create withdrawals table");
             conn.execute("PRAGMA user_version = 2", &[])
                 .expect("alter db version");
+            db_version = 2;
         }
 
     }
@@ -184,6 +186,7 @@ fn init_database(conn: &Connection) {
 
         conn.execute("PRAGMA user_version = 2", &[])
             .expect("alter db version");
+        db_version = 2;
     }
     if db_version == 2 {
         upgrade_message(2);
@@ -195,6 +198,7 @@ fn init_database(conn: &Connection) {
 
         conn.execute("PRAGMA user_version = 3", &[])
             .expect("alter db version");
+        db_version = 3;
     }
 }
 
