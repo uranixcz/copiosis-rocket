@@ -73,6 +73,7 @@ struct Product {
     envbenefit: i64,
 }
 
+#[allow(unused_assignments)]
 fn init_database(conn: &Connection) {
 
     fn upgrade_message(version: usize) {
@@ -242,7 +243,7 @@ fn users(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, NBR, time_created FROM users WHERE id != 0")
+        .prepare("SELECT id, name, NBR, time_created FROM users WHERE id != 0 ORDER BY name")
         .unwrap();
 
     let user_iter = stmt.query_map(&[], |row| {
@@ -338,6 +339,11 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
 
     let p = product.into_inner();
 
+    if p.gateway < 0 {
+        return Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Error: Brána nesmí být nikdy záporná!" } else { "Error: Gateway must never be negative!" })
+    }
+
     let benefit = p.proddembalance * (p.resabundance / p.resabundancetun + p.consdem / p.prodpop)
         + p.consbenefit * (p.conssubsat / p.conssubsattun * p.consobjben / p.consobjbentun)
         + p.envbenefit * (p.socbenefit / p.socbenefittun + p.enveffect / p.enveffecttun + p.humaneffect / p.humaneffecttun);
@@ -378,7 +384,7 @@ fn products(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, gateway, benefit, time_created FROM products")
+        .prepare("SELECT id, name, gateway, benefit, time_created FROM products ORDER BY name")
         .unwrap();
 
     let product_iter = stmt.query_map(&[], |row| {
@@ -495,14 +501,14 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
 
     if nbr - product_params.0 * transfer.amount < 0 && transfer.consumer != 0 {
         return Flash::success(Redirect::to("/"),
-                              if templatedir.0 { "Konzument je v mínusu! Transfer zamítnut." }
-                                  else { "Consumer is in deficit! Transfer denied." })
+                              if templatedir.0 { "Konzument nemá dostatek NBR." }
+                                  else { "Consumer has insufficient NBR." })
     }
 
     if transfer.producer == transfer.consumer {
         return Flash::success(Redirect::to("/"),
-                              if templatedir.0 { "Konzument a producent nesmí být stejná osoba! Transfer zamítnut." }
-                                  else { "Consumer and producer must not be the same! Transfer denied." })
+                              if templatedir.0 { "Konzument a producent nesmí být stejná osoba." }
+                                  else { "Consumer and producer must not be the same." })
     }
 
     if transfer.consumer != 0 {
@@ -567,7 +573,7 @@ fn transfers(conn: State<DbConn>) -> Template {
         LEFT   JOIN users t31 ON t31.id = t2.ConsumerID
         LEFT   JOIN users t32 ON t32.id = t2.ProducerID
         LEFT   JOIN products p ON p.id = t2.ProductID
-        ORDER BY t2.id DESC LIMIT 100;")
+        ORDER BY t2.time_created DESC LIMIT 30;")
         .unwrap();
     {
         let transfer_iter = stmt.query_map(&[], |row| {
