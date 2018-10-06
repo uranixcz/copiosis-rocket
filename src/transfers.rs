@@ -39,7 +39,7 @@ struct NamedTransfer {
 }
 
 #[get("/transfer")]
-fn transfer_page(conn: State<super::DbConn> ) -> Template {
+fn transfer_page(conn: State<DbConn> ) -> Template {
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
