@@ -25,85 +25,67 @@
         </tr>
         <tr>
             <td><label for="gateway">gateway</label></td>
-            <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" required /></td><td></td>
+            <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" max="9999" step="0.01" required /></td><td></td>
         </tr><tr><td colspan="4"><hr><td></td></tr>
 
         <tr>
             <td><label for="resabundance">resource abundance</label></td>
-            <td>1</td><td><input type="range" name="resabundance" id="resabundance" value="{{resabundance}}" min="1" max="255" step="1" required /></td><td>255</td>
+            <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
         <tr>
-            <td><label for="resabundancetun">resource abundance tuning</label></td>
-            <td>1</td><td><input type="range" name="resabundancetun" id="resabundancetun" value="{{resabundancetun}}" min="1" max="255" step="1" required /></td><td>255</td>
+            <td><label for="consprodratio">consumer/producer ratio</label></td>
+            <td>0</td><td><input type="number" name="consprodratio" id="consprodratio" value="{{consprodratio}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
         <tr>
-            <td><label for="prodpop">producer population</label></td>
-            <td>1</td><td><input type="range" name="prodpop" id="prodpop" value="{{prodpop}}" min="1" max="255" step="1" required /></td><td>255</td>
+            <td><label for="socimpact">social impact</label></td>
+            <td>0</td><td><input type="number" name="socimpact" id="socimpact" value="{{socimpact}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
-        <tr>
-            <td><label for="consdem">consumer demand</label></td>
-            <td>1</td><td><input type="range" name="consdem" id="consdem" value="{{consdem}}" min="1" max="255" step="1" required /></td><td>255</td>
-        </tr>
-        <tr>
-            <td><label for="proddembalance">production demand balance tun.</label></td>
-            <td></td><td><input type="number" name="proddembalance" id="proddembalance" value="{{proddembalance}}" min="0" required /></td><td></td>
-        </tr><tr><td colspan="4"><hr></td></tr>
+
+        <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="conssubsat">consumer subjective satisfaction</label></td>
-            <td>-2</td><td><input type="range" name="conssubsat" id="conssubsat" value="{{conssubsat}}" min="-2" max="2" step="2" required /></td><td>2</td>
+            <td><label for="conssubben">consumer subjective benefit</label></td>
+            <td>-100%</td><td><input type="range" name="conssubben" id="conssubben" value="{{conssubben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="conssubsattun">consumer subj. satisfaction tun.</label></td>
-            <td>1</td><td><input type="range" name="conssubsattun" id="conssubsattun" value="{{conssubsattun}}" min="1" max="2" required /></td><td>2</td>
+            <td><label for="ccs">consumer subj. benefit tun.</label></td>
+            <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
         <tr>
             <td><label for="consobjben">consumer objective benefit</label></td>
-            <td>-255</td><td><input type="range" name="consobjben" id="consobjben" value="{{consobjben}}" min="-255" max="255" step="1" required /></td><td>255</td>
+            <td>-100%</td><td><input type="range" name="consobjben" id="consobjben" value="{{consobjben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="consobjbentun">consumer objective benefit tun.</label></td>
-            <td>1</td><td><input type="range" name="consobjbentun" id="consobjbentun" value="{{consobjbentun}}" min="1" max="255" required /></td><td>255</td>
+            <td><label for="cco">consumer objective benefit tun.</label></td>
+            <td>0</td><td><input type="number" name="cco" id="cco" value="{{cco}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
-        <tr>
-            <td><label for="consbenefit">consumer benefit tuning</label></td>
-            <td></td><td><input type="number" name="consbenefit" id="consbenefit" value="{{consbenefit}}" min="0" required /></td><td></td>
-        </tr><tr><td colspan="4"><hr></td></tr>
+
+        <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="socbenefit">social benefit</label></td>
-            <td>1</td><td><input type="range" name="socbenefit" id="socbenefit" value="{{socbenefit}}" min="1" max="6" step="1" required /></td><td>6</td>
+            <td><label for="envben">environmental benefit</label></td>
+            <td>-100%</td><td><input type="range" name="envben" id="envben" value="{{envben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="socbenefittun">social benefit tuning</label></td>
-            <td>1</td><td><input type="range" name="socbenefittun" id="socbenefittun" value="{{socbenefittun}}" min="1" max="6" required /></td><td>6</td>
+            <td><label for="ceb">environmental benefit tun.</label></td>
+            <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
         <tr>
-            <td><label for="enveffect">environmental benefit</label></td>
-            <td>-255</td><td><input type="range" name="enveffect" id="enveffect" value="{{enveffect}}" min="-255" max="255" step="1" required /></td><td>255</td>
+            <td><label for="humanben">human benefit</label></td>
+            <td>-100%</td><td><input type="range" name="humanben" id="humanben" value="{{humanben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="enveffecttun">environmental benefit tun.</label></td>
-            <td>1</td><td><input type="range" name="enveffecttun" id="enveffecttun" value="{{enveffecttun}}" min="1" max="255" required /></td><td>255</td>
+            <td><label for="chb">human benefit tun.</label></td>
+            <td>0</td><td><input type="number" name="chb" id="chb" value="{{chb}}" min="0" max="9999" step="0.01" required /></td><td>INF</td>
         </tr>
-        <tr>
-            <td><label for="humaneffect">human effect</label></td>
-            <td>-255</td><td><input type="range" name="humaneffect" id="humaneffect" value="{{humaneffect}}" min="-255" max="255" step="1" required /></td><td>255</td>
-        </tr>
-        <tr>
-            <td><label for="humaneffecttun">human effect tun.</label></td>
-            <td>1</td><td><input type="range" name="humaneffecttun" id="humaneffecttun" value="{{humaneffecttun}}" min="1" max="255" required /></td><td>255</td>
-        </tr>
-        <tr>
-            <td><label for="envbenefit">environmental benefit tuning</label></td>
-            <td></td><td><input type="number" name="envbenefit" id="envbenefit" value="{{envbenefit}}" min="0" required /></td><td></td>
-        </tr><tr><td colspan="4"><hr><td></td></tr>
+
+        <tr><td colspan="4"><hr><td></td></tr>
 
         <tr>
             <td><input type="hidden" name="id" value="{{id}}"/>
                 <input type="hidden" name="time_created" value="0"/>
                 <input type="hidden" name="benefit" value="0" />
-                Formula can be found <a href="http://news.streetroots.org/sites/default/files/Net%20Benefit%20Calculation%20Algorithm%20Proposal%20V6.0%20final%20%281%29.pdf">here</a>.</td>
+                Formula can be found here ???.</td>
             <td></td><td><input type="submit" value="Submit" /></td><td></td>
         </tr>
     </table>

@@ -13,7 +13,7 @@ use super::{DbConn,TemplateDir};
 pub struct User {
     pub id: i64,
     pub name: String,
-    pub nbr: i64,
+    pub nbr: f64,
     //password: String,
     pub time_created: String,
 }

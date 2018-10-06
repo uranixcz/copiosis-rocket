@@ -13,26 +13,20 @@ use super::{DbConn,TemplateDir};
 pub struct Product {
     id: i64,
     name: String,
-    gateway: i64,
-    benefit: i64,
+    gateway: f64,
+    benefit: f64,
     time_created: String,
-    resabundance: i64,
-    resabundancetun: i64,
-    prodpop: i64,
-    consdem: i64,
-    proddembalance: i64,
-    conssubsat: i64,
-    conssubsattun: i64,
-    consobjben: i64,
-    consobjbentun: i64,
-    consbenefit: i64,
-    socbenefit: i64,
-    socbenefittun: i64,
-    enveffect: i64,
-    enveffecttun: i64,
-    humaneffect: i64,
-    humaneffecttun: i64,
-    envbenefit: i64,
+    resabundance: f64,
+    consprodratio: f64,
+    socimpact: f64,
+    ccs: f64,
+    conssubben: f64,
+    cco: f64,
+    consobjben: f64,
+    ceb: f64,
+    envben: f64,
+    chb: f64,
+    humanben: f64,
 }
 
 #[get("/product")]
@@ -40,26 +34,20 @@ fn addproduct_page() -> Template {
     let product = Product {
         id: 0,
         name: String::new(),
-        gateway: 0,
-        benefit: 0,
+        gateway: 0.0,
+        benefit: 0.0,
         time_created: String::new(),
-        resabundance: 1,
-        resabundancetun: 1,
-        prodpop: 1,
-        consdem: 1,
-        proddembalance: 1,
-        conssubsat: 0,
-        conssubsattun: 1,
-        consobjben: 0,
-        consobjbentun: 1,
-        consbenefit: 1,
-        socbenefit: 1,
-        socbenefittun: 1,
-        enveffect: 0,
-        enveffecttun: 1,
-        humaneffect: 0,
-        humaneffecttun: 1,
-        envbenefit: 1,
+        resabundance: 1.0,
+        consprodratio: 1.0,
+        socimpact: 1.0,
+        ccs: 1.0,
+        conssubben: 0.0,
+        cco: 1.0,
+        consobjben: 0.0,
+        ceb: 1.0,
+        envben: 0.0,
+        chb: 1.0,
+        humanben: 0.0,
     };
     Template::render("addproduct", product)
 }
@@ -69,34 +57,27 @@ fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let product: Product = tmpconn.query_row("SELECT id, name, gateway,
-    resabundance, resabundancetun, prodpop, consdem, proddembalance, conssubsat, conssubsattun,
-    consobjben, consobjbentun, consbenefit, socbenefit, socbenefittun, enveffect, enveffecttun,
-    humaneffect, humaneffecttun, envbenefit
+    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    ceb, envben, chb, humanben
     FROM products WHERE id = $1", &[&product_id],
                                              |row| {
                                                  Product {
                                                      id: row.get(0),
                                                      name: row.get(1),
                                                      gateway: row.get(2),
-                                                     benefit: 0,
+                                                     benefit: 0.0,
                                                      time_created: String::new(),
-                                                     resabundance: row.get_checked(3).unwrap_or(1),
-                                                     resabundancetun: row.get_checked(4).unwrap_or(1),
-                                                     prodpop: row.get_checked(5).unwrap_or(1),
-                                                     consdem: row.get_checked(6).unwrap_or(1),
-                                                     proddembalance: row.get_checked(7).unwrap_or(1),
-                                                     conssubsat: row.get_checked(8).unwrap_or(0),
-                                                     conssubsattun: row.get_checked(9).unwrap_or(1),
-                                                     consobjben: row.get_checked(10).unwrap_or(0),
-                                                     consobjbentun: row.get_checked(11).unwrap_or(1),
-                                                     consbenefit: row.get_checked(12).unwrap_or(1),
-                                                     socbenefit: row.get_checked(13).unwrap_or(1),
-                                                     socbenefittun: row.get_checked(14).unwrap_or(1),
-                                                     enveffect: row.get_checked(15).unwrap_or(0),
-                                                     enveffecttun: row.get_checked(16).unwrap_or(1),
-                                                     humaneffect: row.get_checked(17).unwrap_or(0),
-                                                     humaneffecttun: row.get_checked(18).unwrap_or(1),
-                                                     envbenefit: row.get_checked(19).unwrap_or(1),
+                                                     resabundance: row.get_checked(3).unwrap_or(1.0),
+                                                     consprodratio: row.get_checked(3).unwrap_or(1.0),
+                                                     socimpact: row.get_checked(3).unwrap_or(1.0),
+                                                     ccs: row.get_checked(3).unwrap_or(1.0),
+                                                     conssubben: row.get_checked(3).unwrap_or(0.0),
+                                                     cco: row.get_checked(3).unwrap_or(1.0),
+                                                     consobjben: row.get_checked(3).unwrap_or(0.0),
+                                                     ceb: row.get_checked(3).unwrap_or(1.0),
+                                                     envben: row.get_checked(3).unwrap_or(0.0),
+                                                     chb: row.get_checked(3).unwrap_or(1.0),
+                                                     humanben: row.get_checked(3).unwrap_or(0.0),
                                                  }
                                              }).expect("get product from db");
 
@@ -111,39 +92,37 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
 
     let p = product.into_inner();
 
-    if p.gateway < 0 {
+    if p.gateway < 0.0 {
         return Flash::success(Redirect::to("/"),
                               if templatedir.0 { "Error: Brána nesmí být nikdy záporná!" } else { "Error: Gateway must never be negative!" })
     }
 
-    let benefit = p.proddembalance * (p.resabundance / p.resabundancetun + p.consdem / p.prodpop)
-        + p.consbenefit * (p.conssubsat / p.conssubsattun * p.consobjben / p.consobjbentun)
-        + p.envbenefit * (p.socbenefit / p.socbenefittun + p.enveffect / p.enveffecttun + p.humaneffect / p.humaneffecttun);
+    let benefit = p.resabundance * p.consprodratio * p.socimpact *
+        (
+            p.ccs * p.conssubben + p.cco * p.consobjben +
+            p.ceb * p.envben + p.chb * p.humanben
+        );
 
     if p.id == 0 {
         tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created,
-    resabundance, resabundancetun, prodpop, consdem, proddembalance, conssubsat, conssubsattun,
-    consobjben, consobjbentun, consbenefit, socbenefit, socbenefittun, enveffect, enveffecttun,
-    humaneffect, humaneffecttun, envbenefit)
-    VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)",
+    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    ceb, envben, chb, humanben)
+    VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
                         &[&p.name, &p.gateway, &benefit,
-                            &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
-                            &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
-                            &p.humaneffect, &p.humaneffecttun, &p.envbenefit])
+                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.ceb, &p.envben, &p.chb, &p.humanben])
             .expect("insert single entry into products table");
 
         Flash::success(Redirect::to("/"),
                        if templatedir.0 { "Produkt přidán." } else { "Product added." })
     } else {
         tmpconn.execute("UPDATE products SET name = $1, gateway = $2, benefit = $3,
-    resabundance = $4, resabundancetun = $5, prodpop = $6, consdem = $7, proddembalance = $8, conssubsat = $9, conssubsattun = $10,
-    consobjben = $11, consobjbentun = $12, consbenefit = $13, socbenefit = $14, socbenefittun = $15, enveffect = $16, enveffecttun = $17,
-    humaneffect = $18, humaneffecttun = $19, envbenefit = $20
-    WHERE id = $21",
+    resabundance = $4, consprodratio = $5, socimpact = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
+    ceb = $11, envben = $12, chb = $13, humanben = $14
+    WHERE id = $15",
                         &[&p.name, &p.gateway, &benefit,
-                            &p.resabundance, &p.resabundancetun, &p.prodpop, &p.consdem, &p.proddembalance, &p.conssubsat, &p.conssubsattun,
-                            &p.consobjben, &p.consobjbentun, &p.consbenefit, &p.socbenefit, &p.socbenefittun, &p.enveffect, &p.enveffecttun,
-                            &p.humaneffect, &p.humaneffecttun, &p.envbenefit, &p.id])
+                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.ceb, &p.envben, &p.chb, &p.humanben])
             .expect("update entry in products table");
 
         Flash::success(Redirect::to("/"),
@@ -166,23 +145,17 @@ fn products(db_conn: State<DbConn>) -> Template {
             gateway: row.get(2),
             benefit: row.get(3),
             time_created: row.get(4),
-            resabundance: 0,
-            resabundancetun: 0,
-            prodpop: 0,
-            consdem: 0,
-            proddembalance: 0,
-            conssubsat: 0,
-            conssubsattun: 0,
-            consobjben: 0,
-            consobjbentun: 0,
-            consbenefit: 0,
-            socbenefit: 0,
-            socbenefittun: 0,
-            enveffect: 0,
-            enveffecttun: 0,
-            humaneffect: 0,
-            humaneffecttun: 0,
-            envbenefit: 0,
+            resabundance: 0.0,
+            consprodratio: 0.0,
+            socimpact: 0.0,
+            ccs: 0.0,
+            conssubben: 0.0,
+            cco: 0.0,
+            consobjben: 0.0,
+            ceb: 0.0,
+            envben: 0.0,
+            chb: 0.0,
+            humanben: 0.0,
         }
     }).unwrap();
 

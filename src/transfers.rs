@@ -21,7 +21,7 @@ struct Transfer {
     producer: i64,
     consumer: i64,
     product: i64,
-    amount: i64,
+    amount: f64,
     comment: String,
 }
 
@@ -31,10 +31,10 @@ struct NamedTransfer {
     producer: String,
     consumer: String,
     product: String,
-    amount: i64,
-    nbr: i64,
+    amount: f64,
+    nbr: f64,
     time_created: String,
-    gnbr: i64,
+    gnbr: f64,
     comment: String,
 }
 
@@ -92,15 +92,15 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
-    let product_params:(i64, i64) = tmpconn.query_row("SELECT gateway, benefit FROM products WHERE id = $1",
+    let product_params:(f64, f64) = tmpconn.query_row("SELECT gateway, benefit FROM products WHERE id = $1",
                                                       &[&transfer.product], |row| { (row.get(0), row.get(1)) })
         .expect("product does not exist");
 
-    let nbr: i64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
+    let nbr: f64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
                                      &[&transfer.consumer], |row| { row.get(0) })
         .expect("get nbr for user");
 
-    if nbr - product_params.0 * transfer.amount < 0 && transfer.consumer != 0 {
+    if nbr - product_params.0 * transfer.amount < 0.0 && transfer.consumer != 0 {
         return Flash::success(Redirect::to("/"),
                               if templatedir.0 { "Konzument nemá dostatek NBR." }
                                   else { "Consumer has insufficient NBR." })
@@ -191,7 +191,7 @@ fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State<Tem
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
-    let transfer_params: (i64, i64, i64, i64) = tmpconn.query_row(
+    let transfer_params: (i64, i64, f64, f64) = tmpconn.query_row(
         "SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",
         &[&transfer_id], |row| { (row.get(0), row.get(1), row.get(2), row.get(3)) })
         .expect("product does not exist");
