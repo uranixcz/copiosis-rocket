@@ -52,6 +52,9 @@ pub fn init_database(conn: &Connection) {
                     comment    TEXT
                 )", &[])
             .expect("create table");
+        conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)
+        VALUES (0, '-', 0, 0, datetime('now','localtime'))", &[])
+            .expect("insert single entry into users table");
         conn.execute("PRAGMA user_version = 4", &[])
             .expect("alter db version");
         db_version = 4;
