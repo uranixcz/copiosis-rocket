@@ -68,16 +68,16 @@ fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
                                                      benefit: 0.0,
                                                      time_created: String::new(),
                                                      resabundance: row.get_checked(3).unwrap_or(1.0),
-                                                     consprodratio: row.get_checked(3).unwrap_or(1.0),
-                                                     socimpact: row.get_checked(3).unwrap_or(1.0),
-                                                     ccs: row.get_checked(3).unwrap_or(1.0),
-                                                     conssubben: row.get_checked(3).unwrap_or(0.0),
-                                                     cco: row.get_checked(3).unwrap_or(1.0),
-                                                     consobjben: row.get_checked(3).unwrap_or(0.0),
-                                                     ceb: row.get_checked(3).unwrap_or(1.0),
-                                                     envben: row.get_checked(3).unwrap_or(0.0),
-                                                     chb: row.get_checked(3).unwrap_or(1.0),
-                                                     humanben: row.get_checked(3).unwrap_or(0.0),
+                                                     consprodratio: row.get_checked(4).unwrap_or(1.0),
+                                                     socimpact: row.get_checked(5).unwrap_or(1.0),
+                                                     ccs: row.get_checked(6).unwrap_or(1.0),
+                                                     conssubben: row.get_checked(7).unwrap_or(0.0),
+                                                     cco: row.get_checked(8).unwrap_or(1.0),
+                                                     consobjben: row.get_checked(9).unwrap_or(0.0),
+                                                     ceb: row.get_checked(10).unwrap_or(1.0),
+                                                     envben: row.get_checked(11).unwrap_or(0.0),
+                                                     chb: row.get_checked(12).unwrap_or(1.0),
+                                                     humanben: row.get_checked(13).unwrap_or(0.0),
                                                  }
                                              }).expect("get product from db");
 
@@ -122,7 +122,7 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
     WHERE id = $15",
                         &[&p.name, &p.gateway, &benefit,
                             &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
-                            &p.ceb, &p.envben, &p.chb, &p.humanben])
+                            &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id])
             .expect("update entry in products table");
 
         Flash::success(Redirect::to("/"),
