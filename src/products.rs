@@ -97,7 +97,7 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
                               if templatedir.0 { "Error: Brána nesmí být nikdy záporná!" } else { "Error: Gateway must never be negative!" })
     }
 
-    let benefit = p.resabundance * p.consprodratio * p.socimpact *
+    let benefit = p.resabundance * p.consprodratio * (1.0 + p.socimpact).ln() *
         (
             p.ccs * p.conssubben + p.cco * p.consobjben +
             p.ceb * p.envben + p.chb * p.humanben
