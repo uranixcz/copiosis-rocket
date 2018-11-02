@@ -1,7 +1,7 @@
 //use std::sync::Mutex;
 //use rusqlite::Connection;
 use rocket::request::Form;
-use rocket_contrib::Template;
+use rocket_contrib::templates::Template;
 use rocket::State;
 use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
@@ -19,12 +19,12 @@ pub struct User {
 }
 
 #[get("/adduser")]
-fn adduser_page() -> Template {
+pub fn adduser_page() -> Template {
     Template::render("adduser", "")
 }
 
 #[post("/adduser", data = "<user>")]
-fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let user = user.into_inner();
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
@@ -40,7 +40,7 @@ fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<Template
 }
 
 #[get("/users")]
-fn users(db_conn: State<DbConn>) -> Template {
+pub fn users(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn

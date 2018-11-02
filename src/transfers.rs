@@ -1,7 +1,7 @@
 //use std::sync::Mutex;
 //use rusqlite::Connection;
 use rocket::request::Form;
-use rocket_contrib::Template;
+use rocket_contrib::templates::Template;
 use rocket::State;
 use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
@@ -17,7 +17,7 @@ struct ContextTransfer {
 }
 
 #[derive(FromForm, Serialize)]
-struct Transfer {
+pub struct Transfer {
     producer: i64,
     consumer: i64,
     product: i64,
@@ -39,7 +39,7 @@ struct NamedTransfer {
 }
 
 #[get("/transfer")]
-fn transfer_page(conn: State<DbConn> ) -> Template {
+pub fn transfer_page(conn: State<DbConn> ) -> Template {
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
@@ -86,7 +86,7 @@ fn transfer_page(conn: State<DbConn> ) -> Template {
 }
 
 #[post("/transfer", data = "<post>")]
-fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let transfer = post.into_inner();
 
     let tmpconn = conn.lock()
@@ -140,7 +140,7 @@ fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Templa
 }
 
 #[get("/transfers")]
-fn transfers(conn: State<DbConn>) -> Template {
+pub fn transfers(conn: State<DbConn>) -> Template {
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
@@ -186,7 +186,7 @@ fn transfers(conn: State<DbConn>) -> Template {
 }
 
 #[get("/deletetransfer/<transfer_id>")]
-fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State<TemplateDir>) -> Flash<Redirect> {
 
     let tmpconn = conn.lock()
         .expect("db connection lock");

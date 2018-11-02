@@ -16,9 +16,9 @@
 */
 
 #![feature(plugin, custom_derive)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate rocket;
+#[macro_use] extern crate rocket;
 extern crate rocket_contrib;
 extern crate rusqlite;
 
@@ -28,20 +28,20 @@ use std::sync::Mutex;
 use rocket::Rocket;
 use rusqlite::Connection;
 #[macro_use] extern crate serde_derive;
-use rocket_contrib::Template;
+use rocket_contrib::templates::Template;
 use rocket::request::FlashMessage;
 use rocket::fairing::AdHoc;
 
 mod users;
-use users::*;
+//use users::*;
 mod products;
-use products::*;
+//use products::*;
 mod transfers;
-use transfers::*;
+//use transfers::*;
 mod db;
 
 type DbConn = Mutex<Connection>;
-struct TemplateDir(bool);
+pub struct TemplateDir(bool);
 
 #[get("/")]
 fn index(flash: Option<FlashMessage>) -> Template {
@@ -65,14 +65,14 @@ fn rocket() -> Rocket {
 
     let rct = rocket::ignite()
         .attach(Template::fairing())
-        .attach(AdHoc::on_attach(|rocket| {
+        .attach(AdHoc::on_attach("template_dir",|rocket| {
             println!("Adding token managed state from config...");
             let token_val = rocket.config().get_str("template_dir").unwrap_or("").to_string();
             Ok(rocket.manage(TemplateDir(token_val.ne(""))))
         }))
         .manage(Mutex::new(conn))
-        .mount("/", routes![index, adduser_page, addproduct_page, addproduct, product_page, adduser,
-        transfer_page, transfer, transfers, users, products, delete_transfer]);
+        .mount("/", routes![index, users::adduser_page, products::addproduct_page, products::addproduct, products::product_page, users::adduser,
+        transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer]);
 
     println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     println!("Please open http://localhost:8000 in web browser.\n");

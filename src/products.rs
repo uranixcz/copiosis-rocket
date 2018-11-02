@@ -1,7 +1,7 @@
 //use std::sync::Mutex;
 //use rusqlite::Connection;
 use rocket::request::Form;
-use rocket_contrib::Template;
+use rocket_contrib::templates::Template;
 use rocket::State;
 use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
@@ -30,7 +30,7 @@ pub struct Product {
 }
 
 #[get("/product")]
-fn addproduct_page() -> Template {
+pub fn addproduct_page() -> Template {
     let product = Product {
         id: 0,
         name: String::new(),
@@ -53,7 +53,7 @@ fn addproduct_page() -> Template {
 }
 
 #[get("/product/<product_id>")]
-fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
+pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let product: Product = tmpconn.query_row("SELECT id, name, gateway,
@@ -86,7 +86,7 @@ fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
 }
 
 #[post("/product", data = "<product>")]
-fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
 
@@ -131,7 +131,7 @@ fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State
 }
 
 #[get("/products")]
-fn products(db_conn: State<DbConn>) -> Template {
+pub fn products(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
