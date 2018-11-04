@@ -8,6 +8,7 @@ use rocket::response::Redirect;
 use rocket::response::Flash;
 
 use super::{DbConn,TemplateDir};
+use products::Product;
 
 #[derive(FromForm, Serialize)]
 pub struct User {
@@ -62,4 +63,99 @@ pub fn users(db_conn: State<DbConn>) -> Template {
     }
 
     Template::render("users", vct)
+}
+
+#[get("/user/<user_id>/product/<product_id>")]
+pub fn product_page(user_id: i64, product_id: i64, db_conn: State<DbConn>) -> Template {
+    let tmpconn = db_conn.lock()
+        .expect("db connection lock");
+    let product: Product = tmpconn.query_row("SELECT gateway,
+    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    ceb, envben, chb, humanben
+    FROM user_products WHERE ProductID = $1 AND UserID = $2", &[&product_id, &user_id],
+                                             |row| {
+                                                 Product {
+                                                     id: product_id,
+                                                     name: String::new(),
+                                                     gateway: row.get(0),
+                                                     benefit: 0.0,
+                                                     time_created: String::new(),
+                                                     resabundance: row.get(1),
+                                                     consprodratio: row.get(2),
+                                                     socimpact: row.get(3),
+                                                     ccs: row.get(4),
+                                                     conssubben: row.get(5),
+                                                     cco: row.get(6),
+                                                     consobjben: row.get(7),
+                                                     ceb: row.get(8),
+                                                     envben: row.get(9),
+                                                     chb: row.get(10),
+                                                     humanben: row.get(11),
+                                                     user_id,
+                                                 }
+                                             }).unwrap_or(Product {
+        id: product_id,
+        name: String::new(),
+        gateway: 0.0,
+        benefit: 0.0,
+        time_created: String::new(),
+        resabundance: 0.0,
+        consprodratio: 0.0,
+        socimpact: 0.0,
+        ccs: 0.0,
+        conssubben: 0.0,
+        cco: 0.0,
+        consobjben: 0.0,
+        ceb: 0.0,
+        envben: 0.0,
+        chb: 0.0,
+        humanben: 0.0,
+        user_id,
+    });
+
+    Template::render("adduserproduct", product)
+}
+
+#[post("/user/product", data = "<product>")]
+pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+    let tmpconn = db_conn.lock()
+        .expect("db connection lock");
+
+    let p = product.into_inner();
+
+    if p.gateway < 0.0 {
+        return Flash::success(Redirect::to("/"),
+                              if templatedir.0 { "Error: Brána nesmí být nikdy záporná!" } else { "Error: Gateway must never be negative!" })
+    }
+
+    let benefit = p.resabundance * p.consprodratio * (1.0 + p.socimpact).ln() *
+        (
+            p.ccs * p.conssubben + p.cco * p.consobjben +
+                p.ceb * p.envben + p.chb * p.humanben
+        );
+
+    let update_result = tmpconn.execute("UPDATE user_products SET UserID = $1, gateway = $2, benefit = $3,
+    resabundance = $4, consprodratio = $5, socimpact = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
+    ceb = $11, envben = $12, chb = $13, humanben = $14, ProductID = $15
+    WHERE ProductID = $15 AND UserID = $1",
+                        &[&p.user_id, &p.gateway, &benefit,
+                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id]);
+    if update_result.is_ok() && update_result.unwrap() == 1 {
+        return Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Produkt upraven." } else { "Product modified." })
+    }
+
+    tmpconn.execute("INSERT INTO user_products (UserID, gateway, benefit, time_created,
+    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    ceb, envben, chb, humanben, ProductID)
+    VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
+                        &[&p.user_id, &p.gateway, &benefit,
+                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id])
+            .expect("insert single entry into products table");
+
+        Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Produkt přidán." } else { "Product added." })
+
 }

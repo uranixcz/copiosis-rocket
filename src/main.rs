@@ -40,7 +40,7 @@ mod transfers;
 //use transfers::*;
 mod db;
 
-type DbConn = Mutex<Connection>;
+pub type DbConn = Mutex<Connection>;
 pub struct TemplateDir(bool);
 
 #[get("/")]
@@ -72,7 +72,8 @@ fn rocket() -> Rocket {
         }))
         .manage(Mutex::new(conn))
         .mount("/", routes![index, users::adduser_page, products::addproduct_page, products::addproduct, products::product_page, users::adduser,
-        transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer]);
+        transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer,
+        users::addproduct, users::product_page]);
 
     println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     println!("Please open http://localhost:8000 in web browser.\n");

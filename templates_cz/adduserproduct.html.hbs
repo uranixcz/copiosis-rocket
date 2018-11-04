@@ -12,20 +12,20 @@
     <a href="/users">Výpis uživatelů</a> &middot;
     <a href="/products">Výpis produktů</a> &middot;
     <a href="/transfers">Nejnovější transfery</a>
-<br>
+    <br>
     <a href="/adduser">Přidat uživatele</a> &middot;
     <b><a href="/product">Přidat produkt</a></b> &middot;
     <a href="/transfer">Transfer</a>
 </p>
-<form action="/product" method="post" accept-charset="utf-8">
+<form action="/user/product" method="post" accept-charset="utf-8">
     <table>
         <tr>
             <td><label for="name">název produktu</label></td>
-            <td></td><td><input type="text" name="name" id="name" value="{{name}}" required autofocus /></td><td></td>
+            <td></td><td><input type="text" required disabled /></td><td></td>
         </tr>
         <tr>
             <td><label for="gateway">brána pro získání</label></td>
-            <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" step="0.01" required /></td><td></td>
+            <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" required autofocus /></td><td></td>
         </tr><tr><td colspan="4"><hr><td></td></tr>
 
         <tr>
@@ -85,7 +85,8 @@
             <td><input type="hidden" name="id" value="{{id}}"/>
                 <input type="hidden" name="time_created" value="0"/>
                 <input type="hidden" name="benefit" value="0" />
-                <input type="hidden" name="user_id" value="0" />
+                <input type="hidden" name="user_id" value="{{user_id}}" />
+                <input type="hidden" name="name" id="name" value="{{name}}">
                 Vzorec k nahlédnutí zde ???.</td>
             <td></td><td><input type="submit" value="Odeslat" /></td><td></td>
         </tr>

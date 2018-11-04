@@ -11,22 +11,23 @@ use super::{DbConn,TemplateDir};
 
 #[derive(FromForm, Serialize)]
 pub struct Product {
-    id: i64,
-    name: String,
-    gateway: f64,
-    benefit: f64,
-    time_created: String,
-    resabundance: f64,
-    consprodratio: f64,
-    socimpact: f64,
-    ccs: f64,
-    conssubben: f64,
-    cco: f64,
-    consobjben: f64,
-    ceb: f64,
-    envben: f64,
-    chb: f64,
-    humanben: f64,
+    pub id: i64,
+    pub name: String,
+    pub gateway: f64,
+    pub benefit: f64,
+    pub time_created: String,
+    pub resabundance: f64,
+    pub consprodratio: f64,
+    pub socimpact: f64,
+    pub ccs: f64,
+    pub conssubben: f64,
+    pub cco: f64,
+    pub consobjben: f64,
+    pub ceb: f64,
+    pub envben: f64,
+    pub chb: f64,
+    pub humanben: f64,
+    pub user_id: i64,
 }
 
 #[get("/product")]
@@ -48,6 +49,7 @@ pub fn addproduct_page() -> Template {
         envben: 0.0,
         chb: 1.0,
         humanben: 0.0,
+        user_id: 0
     };
     Template::render("addproduct", product)
 }
@@ -62,7 +64,7 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
     FROM products WHERE id = $1", &[&product_id],
                                              |row| {
                                                  Product {
-                                                     id: row.get(0),
+                                                     id: product_id,
                                                      name: row.get(1),
                                                      gateway: row.get(2),
                                                      benefit: 0.0,
@@ -78,6 +80,7 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
                                                      envben: row.get_checked(11).unwrap_or(0.0),
                                                      chb: row.get_checked(12).unwrap_or(1.0),
                                                      humanben: row.get_checked(13).unwrap_or(0.0),
+                                                     user_id: 0
                                                  }
                                              }).expect("get product from db");
 
@@ -156,6 +159,7 @@ pub fn products(db_conn: State<DbConn>) -> Template {
             envben: 0.0,
             chb: 0.0,
             humanben: 0.0,
+            user_id: 0
         }
     }).unwrap();
 
