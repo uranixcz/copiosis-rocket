@@ -19,6 +19,13 @@ pub struct User {
     pub time_created: String,
 }
 
+#[derive(FromForm)]
+pub struct UserProduct {
+    user_id: i64,
+    product_id: i64,
+    //name: String,
+}
+
 #[get("/adduser")]
 pub fn adduser_page() -> Template {
     Template::render("adduser", "")
@@ -42,6 +49,13 @@ pub fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<Temp
 
 #[get("/users")]
 pub fn users(db_conn: State<DbConn>) -> Template {
+
+    #[derive(Serialize)]
+    struct UsersPage {
+        users: Vec<User>,
+        products: Vec<User>
+    }
+
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
@@ -57,25 +71,43 @@ pub fn users(db_conn: State<DbConn>) -> Template {
         }
     }).unwrap();
 
-    let mut vct = Vec::new();
+    let mut users = Vec::new();
     for user in user_iter {
-        vct.push(user.unwrap());
+        users.push(user.unwrap());
     }
 
-    Template::render("users", vct)
+    let mut stmt = tmpconn
+        .prepare("SELECT id, name FROM products WHERE id != 0 ORDER BY name")
+        .unwrap();
+    let product_iter = stmt.query_map(&[], |row| {
+        User {
+            id: row.get(0),
+            name: row.get(1),
+            nbr: 0.0,
+            time_created: String::new(),
+        }
+    }).unwrap();
+
+    let mut products = Vec::new();
+    for product in product_iter {
+        products.push(product.unwrap());
+    }
+
+    Template::render("users", UsersPage { users, products})
 }
 
-#[get("/user/<user_id>/product/<product_id>")]
-pub fn product_page(user_id: i64, product_id: i64, db_conn: State<DbConn>) -> Template {
+#[post("/user/product", data = "<userproduct>")]
+pub fn product_page(userproduct: Form<UserProduct>, db_conn: State<DbConn>) -> Template {
+    let p = userproduct.into_inner();
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let product: Product = tmpconn.query_row("SELECT gateway,
     resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben
-    FROM user_products WHERE ProductID = $1 AND UserID = $2", &[&product_id, &user_id],
+    FROM user_products WHERE ProductID = $1 AND UserID = $2", &[&p.product_id, &p.user_id],
                                              |row| {
                                                  Product {
-                                                     id: product_id,
+                                                     id: p.product_id,
                                                      name: String::new(),
                                                      gateway: row.get(0),
                                                      benefit: 0.0,
@@ -91,32 +123,32 @@ pub fn product_page(user_id: i64, product_id: i64, db_conn: State<DbConn>) -> Te
                                                      envben: row.get(9),
                                                      chb: row.get(10),
                                                      humanben: row.get(11),
-                                                     user_id,
+                                                     user_id: p.user_id,
                                                  }
                                              }).unwrap_or(Product {
-        id: product_id,
+        id: p.product_id,
         name: String::new(),
         gateway: 0.0,
         benefit: 0.0,
         time_created: String::new(),
-        resabundance: 0.0,
-        consprodratio: 0.0,
-        socimpact: 0.0,
-        ccs: 0.0,
+        resabundance: 1.0,
+        consprodratio: 1.0,
+        socimpact: 1.0,
+        ccs: 1.0,
         conssubben: 0.0,
-        cco: 0.0,
+        cco: 1.0,
         consobjben: 0.0,
-        ceb: 0.0,
+        ceb: 1.0,
         envben: 0.0,
-        chb: 0.0,
+        chb: 1.0,
         humanben: 0.0,
-        user_id,
+        user_id: p.user_id,
     });
 
     Template::render("adduserproduct", product)
 }
 
-#[post("/user/product", data = "<product>")]
+#[post("/user/addproduct", data = "<product>")]
 pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
