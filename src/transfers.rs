@@ -92,9 +92,13 @@ pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Te
     let tmpconn = conn.lock()
         .expect("db connection lock");
 
-    let product_params:(f64, f64) = tmpconn.query_row("SELECT gateway, benefit FROM products WHERE id = $1",
-                                                      &[&transfer.product], |row| { (row.get(0), row.get(1)) })
-        .expect("product does not exist");
+    let product_query = tmpconn.query_row("SELECT gateway, benefit FROM user_products WHERE ProductID = $1 AND UserID = $2",
+                                          &[&transfer.product, &transfer.producer], |row| { (row.get(0), row.get(1)) });
+    if product_query.is_err() {
+        return Flash::success(Redirect::to("/"),
+                       if templatedir.0 { "Produkt musí být nejprve uživateli přiřazen." } else { "Product must be assigned to the user first." })
+    }
+    let product_params:(f64, f64) = product_query.unwrap();
 
     let nbr: f64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
                                      &[&transfer.consumer], |row| { row.get(0) })

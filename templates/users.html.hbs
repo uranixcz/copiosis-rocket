@@ -26,6 +26,7 @@
     <a href="/transfer">Transfer</a>
 </p>
 
+<form action="/user/product" method="post" accept-charset="utf-8" id="productform">
 <select name="product_id" id="product_id" form="productform" required>
     {{#each products}}
         <option value="{{id}}">#{{id}} {{name}}</option>
@@ -46,13 +47,11 @@
             <td>{{nbr}}</td>
             <td>{{time_created}}</td>
             <td>
-                <form action="/user/product" method="post" accept-charset="utf-8" id="productform">
-                    <input type="submit" value="Assign product"/>
-                    <input type="hidden" name="user_id" value="{{id}}">
-                </form>
+                <button type="submit" value="{{id}}" name="user_id">Assign product</button>
             </td>
         </tr>
     {{/each}}
 </table>
+</form>
 </body>
 </html>
