@@ -27,8 +27,8 @@
 </p>
 <table>
     <tr>
-        <th>ID</th>
-        <th>Name</th>
+        <th>Product ID</th>
+        <th>User ID</th>
         <th>Gateway</th>
         <th>Benefit</th>
         <th>Created</th>
@@ -37,11 +37,11 @@
     {{#each .}}
         <tr>
             <td>{{id}}</td>
-            <td>{{name}}</td>
+            <td>{{user_id}}</td>
             <td>{{gateway}}</td>
             <td>{{benefit}}</td>
             <td>{{time_created}}</td>
-            <td><a href="/product/{{id}}">Modify</a></td>
+            <td><!--<a href="/product/{{id}}">Modify</a>--></td>
         </tr>
     {{/each}}
 </table>

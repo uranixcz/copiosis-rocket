@@ -138,13 +138,13 @@ pub fn products(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, gateway, benefit, time_created FROM products ORDER BY name")
+        .prepare("SELECT ProductID, UserID, gateway, benefit, time_created FROM user_products ORDER BY ProductID")
         .unwrap();
 
     let product_iter = stmt.query_map(&[], |row| {
         Product {
             id: row.get(0),
-            name: row.get(1),
+            name: String::new(),
             gateway: row.get(2),
             benefit: row.get(3),
             time_created: row.get(4),
@@ -159,7 +159,7 @@ pub fn products(db_conn: State<DbConn>) -> Template {
             envben: 0.0,
             chb: 0.0,
             humanben: 0.0,
-            user_id: 0
+            user_id: row.get(1)
         }
     }).unwrap();
 

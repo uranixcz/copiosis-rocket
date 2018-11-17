@@ -27,8 +27,8 @@
 </p>
 <table>
     <tr>
-        <th>ID</th>
-        <th>Jméno</th>
+        <th>ID produktu</th>
+        <th>ID uživatele</th>
         <th>Brána</th>
         <th>Benefit</th>
         <th>Vytvořen</th>
@@ -37,11 +37,11 @@
     {{#each .}}
         <tr>
             <td>{{id}}</td>
-            <td>{{name}}</td>
+            <td>{{user_id}}</td>
             <td>{{gateway}}</td>
             <td>{{benefit}}</td>
             <td>{{time_created}}</td>
-            <td><a href="/product/{{id}}">Upravit</a></td>
+            <td><!--<a href="/product/{{id}}">Upravit</a>--></td>
         </tr>
     {{/each}}
 </table>
