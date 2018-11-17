@@ -17,6 +17,7 @@
     <b><a href="/product">Add product</a></b> &middot;
     <a href="/transfer">Transfer</a>
 </p>
+This page only adds a template product.
 <form action="/product" method="post" accept-charset="utf-8">
     <table>
         <tr>
@@ -33,12 +34,12 @@
             <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>INF</td>
         </tr>
         <tr>
-            <td><label for="consprodratio">consumer/producer ratio</label></td>
-            <td>0</td><td><input type="number" name="consprodratio" id="consprodratio" value="{{consprodratio}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="beneficiaries">number of beneficiaries</label></td>
+            <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>INF</td>
         </tr>
         <tr>
-            <td><label for="socimpact">social impact</label></td>
-            <td>0</td><td><input type="number" name="socimpact" id="socimpact" value="{{socimpact}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="producers">number of producers</label></td>
+            <td>0</td><td><input type="number" name="producers" id="producers" value="{{producers}}" min="0" required /></td><td>INF</td>
         </tr>
 
         <tr><td colspan="4"><hr></td></tr>

@@ -17,8 +17,8 @@ pub struct Product {
     pub benefit: f64,
     pub time_created: String,
     pub resabundance: f64,
-    pub consprodratio: f64,
-    pub socimpact: f64,
+    pub beneficiaries: f64,
+    pub producers: f64,
     pub ccs: f64,
     pub conssubben: f64,
     pub cco: f64,
@@ -39,8 +39,8 @@ pub fn addproduct_page() -> Template {
         benefit: 0.0,
         time_created: String::new(),
         resabundance: 1.0,
-        consprodratio: 1.0,
-        socimpact: 1.0,
+        beneficiaries: 1.0,
+        producers: 1.0,
         ccs: 1.0,
         conssubben: 0.0,
         cco: 1.0,
@@ -59,7 +59,7 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let product: Product = tmpconn.query_row("SELECT id, name, gateway,
-    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben
     FROM products WHERE id = $1", &[&product_id],
                                              |row| {
@@ -70,8 +70,8 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
                                                      benefit: 0.0,
                                                      time_created: String::new(),
                                                      resabundance: row.get_checked(3).unwrap_or(1.0),
-                                                     consprodratio: row.get_checked(4).unwrap_or(1.0),
-                                                     socimpact: row.get_checked(5).unwrap_or(1.0),
+                                                     beneficiaries: row.get_checked(4).unwrap_or(1.0),
+                                                     producers: row.get_checked(5).unwrap_or(1.0),
                                                      ccs: row.get_checked(6).unwrap_or(1.0),
                                                      conssubben: row.get_checked(7).unwrap_or(0.0),
                                                      cco: row.get_checked(8).unwrap_or(1.0),
@@ -100,7 +100,7 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
                               if templatedir.0 { "Error: Brána nesmí být nikdy záporná!" } else { "Error: Gateway must never be negative!" })
     }
 
-    let benefit = p.resabundance * p.consprodratio * (1.0 + p.socimpact).ln() *
+    let benefit = p.resabundance * (1.0 + p.beneficiaries / p.producers).ln() *
         (
             p.ccs * p.conssubben + p.cco * p.consobjben +
             p.ceb * p.envben + p.chb * p.humanben
@@ -108,11 +108,11 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
 
     if p.id == 0 {
         tmpconn.execute("INSERT INTO products (name, gateway, benefit, time_created,
-    resabundance, consprodratio, socimpact, ccs, conssubben, cco, consobjben,
+    resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben)
     VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
                         &[&p.name, &p.gateway, &benefit,
-                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.resabundance, &p.beneficiaries, &p.producers, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
                             &p.ceb, &p.envben, &p.chb, &p.humanben])
             .expect("insert single entry into products table");
 
@@ -120,11 +120,11 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
                        if templatedir.0 { "Produkt přidán." } else { "Product added." })
     } else {
         tmpconn.execute("UPDATE products SET name = $1, gateway = $2, benefit = $3,
-    resabundance = $4, consprodratio = $5, socimpact = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
+    resabundance = $4, beneficiaries = $5, producers = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
     ceb = $11, envben = $12, chb = $13, humanben = $14
     WHERE id = $15",
                         &[&p.name, &p.gateway, &benefit,
-                            &p.resabundance, &p.consprodratio, &p.socimpact, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
+                            &p.resabundance, &p.beneficiaries, &p.producers, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
                             &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id])
             .expect("update entry in products table");
 
@@ -149,8 +149,8 @@ pub fn products(db_conn: State<DbConn>) -> Template {
             benefit: row.get(3),
             time_created: row.get(4),
             resabundance: 0.0,
-            consprodratio: 0.0,
-            socimpact: 0.0,
+            beneficiaries: 0.0,
+            producers: 0.0,
             ccs: 0.0,
             conssubben: 0.0,
             cco: 0.0,
