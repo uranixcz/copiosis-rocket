@@ -30,6 +30,12 @@ pub struct Product {
     pub user_id: i64,
 }
 
+#[derive(Serialize)]
+struct TemplateMessage {
+    is_user_product: bool,
+    vec: Vec<Product>,
+}
+
 #[get("/product")]
 pub fn addproduct_page() -> Template {
     let product = Product {
@@ -88,6 +94,54 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
 
 }
 
+#[get("/product/<product_id>/producers")]
+pub fn product_producers(product_id: i64, db_conn: State<DbConn>) -> Template {
+    let tmpconn = db_conn.lock()
+        .expect("db connection lock");
+
+    let mut vec = Vec::new();
+    let mut stmt = tmpconn
+        .prepare("SELECT users.id,
+        users.name,
+        user_products.gateway,
+        user_products.benefit,
+        user_products.time_created
+        FROM user_products
+        LEFT JOIN users ON users.id = user_products.UserID
+        WHERE user_products.ProductID == $1
+        ORDER BY name;")
+        .unwrap();
+    {
+        let iter = stmt.query_map(&[&product_id], |row| {
+            Product {
+                id: row.get(0), //it has to go here because of template used
+                name: row.get(1),
+                gateway: row.get(2),
+                benefit: row.get(3),
+                time_created: row.get(4),
+                resabundance: 0.0,
+                beneficiaries: 0.0,
+                producers: 0.0,
+                ccs: 0.0,
+                conssubben: 0.0,
+                cco: 0.0,
+                consobjben: 0.0,
+                ceb: 0.0,
+                envben: 0.0,
+                chb: 0.0,
+                humanben: 0.0,
+                user_id: 0,
+            }
+        }).unwrap();
+        for i in iter {
+            vec.push(i.unwrap());
+        }
+    }
+
+    Template::render("products", &TemplateMessage { is_user_product: true, vec})
+
+}
+
 #[post("/product", data = "<product>")]
 pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
     let tmpconn = db_conn.lock()
@@ -138,13 +192,13 @@ pub fn products(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT ProductID, UserID, gateway, benefit, time_created FROM user_products ORDER BY ProductID")
+        .prepare("SELECT id, name, gateway, benefit, time_created FROM products ORDER BY name")
         .unwrap();
 
     let product_iter = stmt.query_map(&[], |row| {
         Product {
             id: row.get(0),
-            name: String::new(),
+            name: row.get(1),
             gateway: row.get(2),
             benefit: row.get(3),
             time_created: row.get(4),
@@ -159,14 +213,14 @@ pub fn products(db_conn: State<DbConn>) -> Template {
             envben: 0.0,
             chb: 0.0,
             humanben: 0.0,
-            user_id: row.get(1)
+            user_id: 0
         }
     }).unwrap();
 
-    let mut vct = Vec::new();
+    let mut vec = Vec::new();
     for product in product_iter {
-        vct.push(product.unwrap());
+        vec.push(product.unwrap());
     }
 
-    Template::render("products", vct)
+    Template::render("products", TemplateMessage { is_user_product: false, vec})
 }

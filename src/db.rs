@@ -55,6 +55,7 @@ pub fn init_database(conn: &Connection) {
         conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)
         VALUES (0, '-', 0, 0, datetime('now','localtime'))", &[])
             .expect("insert single entry into users table");
+
         conn.execute("CREATE TABLE user_products (
                     ProductID          INTEGER,
                     UserID         INTEGER,
@@ -75,6 +76,7 @@ pub fn init_database(conn: &Connection) {
                     PRIMARY KEY ( ProductID, UserID)
                 )", &[])
             .expect("create table");
+
         conn.execute("PRAGMA user_version = 4", &[])
             .expect("alter db version");
         db_version = 4;

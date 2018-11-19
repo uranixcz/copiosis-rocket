@@ -73,7 +73,7 @@ fn rocket() -> Rocket {
         .manage(Mutex::new(conn))
         .mount("/", routes![index, users::adduser_page, products::addproduct_page, products::addproduct, products::product_page, users::adduser,
         transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer,
-        users::addproduct, users::product_page]);
+        users::addproduct, users::product_page, products::product_producers]);
 
     println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     println!("Please open http://localhost:8000 in web browser.\n");
