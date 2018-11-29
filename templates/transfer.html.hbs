@@ -26,7 +26,7 @@
             <td>
                 <select name="producer" id="producer" required autofocus>
                     {{#each users}}
-                        <option value="{{id}}">{{name}} ({{nbr}})</option>
+                        <option value="{{id}}">#{{id}} {{name}} ({{nbr}})</option>
                     {{/each}}
                 </select>
             </td>
@@ -39,7 +39,7 @@
                 <select name="consumer" id="consumer" required>
                     <option value="0">nobody/everybody</option>
                     {{#each users}}
-                        <option value="{{id}}">{{name}} ({{nbr}})</option>
+                        <option value="{{id}}">#{{id}} {{name}} ({{nbr}})</option>
                     {{/each}}
                 </select>
             </td>
@@ -51,7 +51,7 @@
             <td>
                 <select name="product" id="product" required>
                     {{#each products}}
-                        <option value="{{id}}">{{name}} ({{nbr}})</option>
+                        <option value="{{id}}">#{{id}} {{name}}</option>
                     {{/each}}
                 </select>
             </td>

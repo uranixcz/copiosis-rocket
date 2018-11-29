@@ -13,14 +13,20 @@
     <a href="/products">Výpis produktů</a> &middot;
     <a href="/transfers">Nejnovější transfery</a>
     <br>
-    <b><a href="/adduser">Přidat uživatele</a></b> &middot;
-    <a href="/product">Přidat produkt</a> &middot;
+    {{#if nbr}}
+        <b><a href="/adduser">Přidat uživatele</a></b> &middot;
+        <a href="/product">Přidat produkt</a>
+    {{else}}
+        <a href="/adduser">Přidat uživatele</a> &middot;
+        <b><a href="/product">Přidat produkt</a></b>
+    {{/if}} &middot;
     <a href="/transfer">Transfer</a>
 </p>
-<form action="/adduser" method="post" accept-charset="utf-8">
+<form action="{{#if nbr}}/adduser{{else}}/product{{/if}}" method="post" accept-charset="utf-8">
     <input type="hidden" name="id" value="0" />
-    <label for="name">jméno uživatele</label>
-    <input type="text" name="name" id="name" value="" required autofocus/>
+    <label for="name">jméno</label>
+    <input type="text" name="name" id="name" value="{{name}}" required autofocus/>
+    <input type="hidden" name="id" value="{{id}}"/>
     <input type="hidden" name="nbr" value="0" />
     <input type="hidden" name="time_created" value="0"/>
     <input type="submit" value="Odeslat" />

@@ -13,14 +13,20 @@
     <a href="/products">Show products</a> &middot;
     <a href="/transfers">Latest transfers</a>
     <br>
-    <b><a href="/adduser">Add user</a></b> &middot;
-    <a href="/product">Add product</a> &middot;
+    {{#if nbr}}
+        <b><a href="/adduser">Add user</a></b> &middot;
+        <a href="/product">Add product</a>
+    {{else}}
+        <a href="/adduser">Add user</a> &middot;
+        <b><a href="/product">Add product</a></b>
+    {{/if}} &middot;
     <a href="/transfer">Transfer</a>
 </p>
-<form action="/adduser" method="post" accept-charset="utf-8">
+<form action="{{#if nbr}}/adduser{{else}}/product{{/if}}" method="post" accept-charset="utf-8">
     <input type="hidden" name="id" value="0" />
-    <label for="name">username</label>
-    <input type="text" name="name" id="name" value="" required autofocus/>
+    <label for="name">name</label>
+    <input type="text" name="name" id="name" value="{{name}}" required autofocus/>
+    <input type="hidden" name="id" value="{{id}}"/>
     <input type="hidden" name="nbr" value="0" />
     <input type="hidden" name="time_created" value="0"/>
     <input type="submit" value="Submit" />

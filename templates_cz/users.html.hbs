@@ -27,11 +27,11 @@
 </p>
 
 <form action="/user/product" method="post" accept-charset="utf-8" id="productform">
-<select name="product_id" id="product_id" form="productform" required>
+Vyberte produkt k přiřazení: <select name="product_id" id="product_id" form="productform" required>
     {{#each products}}
         <option value="{{id}}">#{{id}} {{name}}</option>
     {{/each}}
-</select>
+</select><br>
 <table>
     <tr>
         <th>ID</th>

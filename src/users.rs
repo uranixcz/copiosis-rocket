@@ -28,7 +28,12 @@ pub struct UserProduct {
 
 #[get("/adduser")]
 pub fn adduser_page() -> Template {
-    Template::render("adduser", "")
+    Template::render("adduser", User {
+        id: 0,
+        name: String::new(),
+        nbr: 1.0,
+        time_created: String::new()
+    })
 }
 
 #[post("/adduser", data = "<user>")]
