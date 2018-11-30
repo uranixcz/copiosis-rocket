@@ -29,8 +29,8 @@
     <tr>
         <th>ID</th>
         <th>Name</th>
-        <th>Gateway</th>
-        <th>Benefit</th>
+        {{#if ../is_user_product}}<th>Gateway</th>{{/if}}
+        {{#if ../is_user_product}}<th>Benefit</th>{{/if}}
         <th>Created</th>
         <th>Operation</th>
     </tr>
@@ -38,8 +38,8 @@
         <tr>
             <td>{{id}}</td>
             <td>{{#if ../is_user_product}}{{name}}{{else}}<a href="/product/{{id}}">{{name}}</a>{{/if}}</td>
-            <td>{{gateway}}</td>
-            <td>{{benefit}}</td>
+            {{#if ../is_user_product}}<td style="overflow: hidden; max-width: 66px;">{{gateway}}</td>{{/if}}
+            {{#if ../is_user_product}}<td style="overflow: hidden; max-width: 66px;">{{benefit}}</td>{{/if}}
             <td>{{time_created}}</td>
             <td>{{#if ../is_user_product}}Delete (WIP){{else}}<a href="/product/{{id}}/producers">Producers</a>{{/if}}</td>
         </tr>
