@@ -19,10 +19,10 @@
 </p>
 <form action="/user/addproduct" method="post" accept-charset="utf-8">
     <table>
-        <tr>
+        <!--<tr>
             <td><label for="name">product name</label></td>
             <td></td><td><input type="text" required disabled /></td><td></td>
-        </tr>
+        </tr>-->
         <tr>
             <td><label for="gateway">gateway</label></td>
             <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" step="0.01" required autofocus /></td><td></td>
@@ -30,15 +30,15 @@
 
         <tr>
             <td><label for="resabundance">resource abundance</label></td>
-            <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
             <td><label for="beneficiaries">number of beneficiaries</label></td>
-            <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>&infin;</td>
         </tr>
         <tr>
             <td><label for="producers">number of producers</label></td>
-            <td>0</td><td><input type="number" name="producers" id="producers" value="{{producers}}" min="0" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="producers" id="producers" value="{{producers}}" min="0" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr></td></tr>
@@ -49,7 +49,7 @@
         </tr>
         <tr>
             <td><label for="ccs">consumer subj. benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
             <td><label for="consobjben">consumer objective benefit</label></td>
@@ -57,7 +57,7 @@
         </tr>
         <tr>
             <td><label for="cco">consumer objective benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="cco" id="cco" value="{{cco}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="cco" id="cco" value="{{cco}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr></td></tr>
@@ -68,7 +68,7 @@
         </tr>
         <tr>
             <td><label for="ceb">environmental benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
             <td><label for="humanben">human benefit</label></td>
@@ -76,7 +76,7 @@
         </tr>
         <tr>
             <td><label for="chb">human benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="chb" id="chb" value="{{chb}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td>0</td><td><input type="number" name="chb" id="chb" value="{{chb}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr><td></td></tr>

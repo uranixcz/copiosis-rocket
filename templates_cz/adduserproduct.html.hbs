@@ -19,64 +19,64 @@
 </p>
 <form action="/user/addproduct" method="post" accept-charset="utf-8">
     <table>
-        <tr>
+        <!--<tr>
             <td><label for="name">název produktu</label></td>
             <td></td><td><input type="text" required disabled /></td><td></td>
-        </tr>
+        </tr>-->
         <tr>
             <td><label for="gateway">brána pro získání</label></td>
             <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" required autofocus /></td><td></td>
         </tr><tr><td colspan="4"><hr><td></td></tr>
 
         <tr>
-            <td><label for="resabundance">resource abundance</label></td>
-            <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="resabundance">rychlost obnovy zdroje</label></td>
+            <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="beneficiaries">number of beneficiaries</label></td>
-            <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>INF</td>
+            <td><label for="beneficiaries">počet příjemců</label></td>
+            <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="producers">number of producers</label></td>
-            <td>0</td><td><input type="number" name="producers" id="producers" value="{{producers}}" min="0" required /></td><td>INF</td>
+            <td><label for="producers">počet producentů</label></td>
+            <td>0</td><td><input type="number" name="producers" id="producers" value="{{producers}}" min="0" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="conssubben">consumer subjective benefit</label></td>
+            <td><label for="conssubben">subjektivní přínos</label></td>
             <td>-100%</td><td><input type="range" name="conssubben" id="conssubben" value="{{conssubben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="ccs">consumer subj. benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="ccs">korekce subj. přínosu</label></td>
+            <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="consobjben">consumer objective benefit</label></td>
+            <td><label for="consobjben">objektivní přínos</label></td>
             <td>-100%</td><td><input type="range" name="consobjben" id="consobjben" value="{{consobjben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="cco">consumer objective benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="cco" id="cco" value="{{cco}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="cco">korekce obj. přínosu</label></td>
+            <td>0</td><td><input type="number" name="cco" id="cco" value="{{cco}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="envben">environmental benefit</label></td>
+            <td><label for="envben">ekologický přínos</label></td>
             <td>-100%</td><td><input type="range" name="envben" id="envben" value="{{envben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="ceb">environmental benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="ceb">korekce eko. přínosu</label></td>
+            <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="humanben">human benefit</label></td>
+            <td><label for="humanben">vliv na lidstvo</label></td>
             <td>-100%</td><td><input type="range" name="humanben" id="humanben" value="{{humanben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="chb">human benefit tun.</label></td>
-            <td>0</td><td><input type="number" name="chb" id="chb" value="{{chb}}" min="0" step="0.01" required /></td><td>INF</td>
+            <td><label for="chb">korekce vlivu</label></td>
+            <td>0</td><td><input type="number" name="chb" id="chb" value="{{chb}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
 
         <tr><td colspan="4"><hr><td></td></tr>
