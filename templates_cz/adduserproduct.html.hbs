@@ -24,16 +24,16 @@
             <td></td><td><input type="text" required disabled /></td><td></td>
         </tr>-->
         <tr>
-            <td><label for="gateway">brána pro získání</label></td>
+            <td><label for="gateway"><abbr title="Množství NBR, které se odečte příjemci. Volí si každý producent za sebe! Hodí se např. k informování příjemců o ochotě producenta přijímat zákazníky (0 = mnoho).">brána pro získání</abbr></label></td>
             <td></td><td><input type="number" name="gateway" id="gateway" value="{{gateway}}" min="0" required autofocus /></td><td></td>
         </tr><tr><td colspan="4"><hr><td></td></tr>
 
         <tr>
-            <td><label for="resabundance">rychlost obnovy zdroje</label></td>
+            <td><label for="resabundance"><abbr title="Kolikanásobnou rychlostí se zdroj obnovuje.&#13;1 = rovnováha v čerpání&#13;0 = zdroj vyčerpán&#13;2 = 2x rychlejší obnova">rychlost obnovy zdroje</abbr></label></td>
             <td>0</td><td><input type="number" name="resabundance" id="resabundance" value="{{resabundance}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="beneficiaries">počet příjemců</label></td>
+            <td><label for="beneficiaries"><abbr title="Kolik příjemců/spotřebitelů tento produkt průměrně odebírá.">počet příjemců</abbr></label></td>
             <td>0</td><td><input type="number" name="beneficiaries" id="beneficiaries" value="{{beneficiaries}}" min="0" required /></td><td>&infin;</td>
         </tr>
         <tr>
@@ -44,15 +44,15 @@
         <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="conssubben">subjektivní přínos</label></td>
+            <td><label for="conssubben"><abbr title="Názorové, pocitové a/nebo smyslové hodnocení.">subjektivní přínos</abbr></label></td>
             <td>-100%</td><td><input type="range" name="conssubben" id="conssubben" value="{{conssubben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
-            <td><label for="ccs">korekce subj. přínosu</label></td>
+            <td><label for="ccs"><abbr title="Všechny korekce jsou jednoduše násobiče/váhy k předchozí proměnné. Pokud nevíte, ponechte 1x.">korekce subj. přínosu</abbr></label></td>
             <td>0</td><td><input type="number" name="ccs" id="ccs" value="{{ccs}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="consobjben">objektivní přínos</label></td>
+            <td><label for="consobjben"><abbr title="V ideálním případě vědecky podložený měřitelný přínos.">objektivní přínos</abbr></label></td>
             <td>-100%</td><td><input type="range" name="consobjben" id="consobjben" value="{{consobjben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
@@ -63,7 +63,7 @@
         <tr><td colspan="4"><hr></td></tr>
 
         <tr>
-            <td><label for="envben">ekologický přínos</label></td>
+            <td><label for="envben"><abbr title="Podpora udržitelnosti a života v přírodě.">ekologický přínos</abbr></label></td>
             <td>-100%</td><td><input type="range" name="envben" id="envben" value="{{envben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
@@ -71,7 +71,7 @@
             <td>0</td><td><input type="number" name="ceb" id="ceb" value="{{ceb}}" min="0" step="0.01" required /></td><td>&infin;</td>
         </tr>
         <tr>
-            <td><label for="humanben">vliv na lidstvo</label></td>
+            <td><label for="humanben"><abbr title="Zda je díky produktu lidstvo odolnější/houževnatější.">vliv na lidstvo</abbr></label></td>
             <td>-100%</td><td><input type="range" name="humanben" id="humanben" value="{{humanben}}" min="-1" max="1" step="0.1" required /></td><td>100%</td>
         </tr>
         <tr>
@@ -87,7 +87,7 @@
                 <input type="hidden" name="benefit" value="0" />
                 <input type="hidden" name="user_id" value="{{user_id}}" />
                 <input type="hidden" name="name" id="name" value="{{name}}">
-                Vzorec k nahlédnutí zde ???.</td>
+                Vzorec k nahlédnutí v přiloženém PDF.</td>
             <td></td><td><input type="submit" value="Odeslat" /></td><td></td>
         </tr>
     </table>
