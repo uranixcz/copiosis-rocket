@@ -4,6 +4,7 @@ After start type the URL in your browser. Linux users should install sqlite3.
 To compile you need Rust nightly build with cargo. I recommend https://rustup.rs
 
 Install **libsqlite3-dev**
+
 Windows build requires **sqlite3.dll** in the target/{debug, release}/deps folder.
 
 Cross compiling for Win on Linux
