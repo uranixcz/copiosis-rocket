@@ -62,13 +62,15 @@ pub fn transfer_page(conn: State<DbConn> ) -> Template {
         }
     }
     stmt = tmpconn
-        .prepare("SELECT id, name, gateway FROM products ORDER BY name")
+        .prepare("SELECT id, name FROM products
+        WHERE id IN (SELECT ProductID FROM user_products)
+        ORDER BY name")
         .unwrap();
     let item_iter = stmt.query_map(&[], |row| {
         User { //yes, this is on purpose to save data
             id: row.get(0),
             name: row.get(1),
-            nbr: row.get(2),
+            nbr: 0.0,
             fame: 0.0,
             time_created: String::new(),
         }
