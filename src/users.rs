@@ -15,6 +15,7 @@ pub struct User {
     pub id: i64,
     pub name: String,
     pub nbr: f64,
+    pub fame: f64,
     //password: String,
     pub time_created: String,
 }
@@ -32,6 +33,7 @@ pub fn adduser_page() -> Template {
         id: 0,
         name: String::new(),
         nbr: 1.0,
+        fame: 0.0,
         time_created: String::new()
     })
 }
@@ -64,7 +66,7 @@ pub fn users(db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let mut stmt = tmpconn
-        .prepare("SELECT id, name, NBR, time_created FROM users WHERE id != 0 ORDER BY name")
+        .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY name")
         .unwrap();
 
     let user_iter = stmt.query_map(&[], |row| {
@@ -72,6 +74,7 @@ pub fn users(db_conn: State<DbConn>) -> Template {
             id: row.get(0),
             name: row.get(1),
             nbr: row.get(2),
+            fame: row.get(4),
             time_created: row.get(3),
         }
     }).unwrap();
@@ -89,6 +92,7 @@ pub fn users(db_conn: State<DbConn>) -> Template {
             id: row.get(0),
             name: row.get(1),
             nbr: 0.0,
+            fame: 0.0,
             time_created: String::new(),
         }
     }).unwrap();
@@ -195,4 +199,27 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
         Flash::success(Redirect::to("/"),
                        if templatedir.0 { "Produkt přidán." } else { "Product added." })
 
+}
+
+#[get("/fame")]
+pub fn fame(db_conn: State<DbConn>) -> Template {
+    let tmpconn = db_conn.lock()
+        .expect("db connection lock");
+    let mut stmt = tmpconn
+        .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY fame DESC")
+        .unwrap();
+
+    let user_iter = stmt.query_map(&[], |row| {
+        User {
+            id: row.get(0),
+            name: row.get(1),
+            nbr: row.get(2),
+            fame: row.get(4),
+            time_created: row.get(3),
+        }
+    }).unwrap();
+
+    let users: Vec<User> = user_iter.map(|x| x.unwrap()).collect();
+
+    Template::render("fame", users)
 }

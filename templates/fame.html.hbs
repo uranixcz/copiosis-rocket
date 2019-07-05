@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Copiosis</title>
+    <style>
+    table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 1px 10px;
+    }
+
+    </style>
+</head>
+<body>
+    <table>
+        <tr><th colspan="5">Hall of Fame</th></tr>
+        <tr>
+            <th>Fame</th>
+            <th>ID</th>
+            <th>Name</th>
+            <th>NBR</th>
+            <th>Created</th>
+        </tr>
+        {{#each .}}
+            <tr>
+                <td style="overflow: hidden; max-width: 66px;">{{fame}}</td>
+                <td>{{id}}</td>
+                <td>{{name}}</td>
+                <td style="overflow: hidden; max-width: 66px;">{{nbr}}</td>
+                <td>{{time_created}}</td>
+            </tr>
+        {{/each}}
+    </table>
+</body>
+</html>

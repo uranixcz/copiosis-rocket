@@ -37,6 +37,7 @@ Vyberte produkt k přiřazení: <select name="product_id" id="product_id" form="
         <th>ID</th>
         <th>Jméno</th>
         <th>NBR</th>
+        <th><a href="/fame">Sláva</a></th>
         <th>Vytvořen</th>
         <th>Operace</th>
     </tr>
@@ -45,6 +46,7 @@ Vyberte produkt k přiřazení: <select name="product_id" id="product_id" form="
             <td>{{id}}</td>
             <td>{{name}}</td>
             <td style="overflow: hidden; max-width: 66px;">{{nbr}}</td>
+            <td style="overflow: hidden; max-width: 66px;">{{fame}}</td>
             <td>{{time_created}}</td>
             <td>
                 <button type="submit" value="{{id}}" name="user_id">Přiřadit produkt</button>

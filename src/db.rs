@@ -54,7 +54,7 @@ pub fn init_database(conn: &Connection) {
             .expect("create table");
         conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)
         VALUES (0, '-', 0, 0, datetime('now','localtime'))", &[])
-            .expect("insert single entry into users table");
+            .expect("insert single entry into table");
 
         conn.execute("CREATE TABLE user_products (
                     ProductID          INTEGER,
@@ -77,11 +77,17 @@ pub fn init_database(conn: &Connection) {
                 )", &[])
             .expect("create table");
 
-        conn.execute("PRAGMA user_version = 4", &[])
-            .expect("alter db version");
         db_version = 4;
 
     }
-    if db_version != 4 { panic!("DB upgrade not implemented!")}
+    if db_version < 4 { panic!("DB upgrade not implemented!")}
+    if db_version == 4 {
+        upgrade_message(4);
+        conn.execute("ALTER TABLE users ADD COLUMN fame REAL NOT NULL DEFAULT 0", &[]).expect("alter db add column");
+        conn.execute("UPDATE users SET fame = NBR", &[]).expect("update users fame");
+        conn.execute("PRAGMA user_version = 5", &[])
+            .expect("alter db version");
+        db_version = 5;
+    }
 
 }

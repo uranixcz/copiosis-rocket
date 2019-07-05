@@ -53,6 +53,7 @@ pub fn transfer_page(conn: State<DbConn> ) -> Template {
                 id: row.get(0),
                 name: row.get(1),
                 nbr: row.get(2),
+                fame: 0.0,
                 time_created: String::new(),
             }
         }).unwrap();
@@ -68,6 +69,7 @@ pub fn transfer_page(conn: State<DbConn> ) -> Template {
             id: row.get(0),
             name: row.get(1),
             nbr: row.get(2),
+            fame: 0.0,
             time_created: String::new(),
         }
     }).unwrap();
@@ -129,13 +131,13 @@ pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Te
                             &(product_params.1 * transfer.amount), &0, if transfer.comment.is_empty() { &rusqlite::types::Null} else { &transfer.comment }])
             .expect("insert single entry into transfers table");
     }
-    tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
+    tmpconn.execute("UPDATE users SET NBR = NBR + $1, fame = fame + $1 WHERE id = $2",
                     &[&(product_params.1 * transfer.amount), &transfer.producer])
-        .expect("update producer entry in transfers table");
+        .expect("update entries in users table");
     if transfer.consumer != 0 {
         tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
                         &[&(product_params.0 * transfer.amount), &transfer.consumer])
-            .expect("update consumer entry in transfers table");
+            .expect("update entries in users table");
     }
 
     Flash::success(Redirect::to("/"),
@@ -204,12 +206,12 @@ pub fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State
     tmpconn.execute("DELETE FROM transfers WHERE id = $1",
                     &[&transfer_id])
         .expect("delete single entry from transfers table");
-    tmpconn.execute("UPDATE users SET NBR = NBR - $1 WHERE id = $2",
+    tmpconn.execute("UPDATE users SET NBR = NBR - $1, fame = fame - $1 WHERE id = $2",
                     &[&transfer_params.2, &transfer_params.0])
-        .expect("update producer entry in transfers table");
+        .expect("update entries in users table");
     tmpconn.execute("UPDATE users SET NBR = NBR + $1 WHERE id = $2",
                     &[&transfer_params.3, &transfer_params.1])
-        .expect("update producer entry in transfers table");
+        .expect("update entries in users table");
 
     Flash::success(Redirect::to("/"),
                    if templatedir.0 { "Transfer smazán." }

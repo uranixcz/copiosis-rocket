@@ -39,10 +39,11 @@ struct TemplateMessage {
 
 #[get("/product")]
 pub fn addproduct_page() -> Template {
-    Template::render("adduser", User {
+    Template::render("adduser", User { //this is intentional, lookup the template
         id: 0,
         name: String::new(),
         nbr: 0.0,
+        fame: 0.0,
         time_created: String::new()
     })
 }
@@ -58,12 +59,14 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
                                                      id: row.get(0),
                                                      name: row.get(1),
                                                      nbr: 0.0,
+                                                     fame: 0.0,
                                                      time_created: String::new()
                                                  }
                                              }).unwrap_or(User {
         id: 0,
         name: String::new(),
         nbr: 0.0,
+        fame: 0.0,
         time_created: String::new()
     });
 
