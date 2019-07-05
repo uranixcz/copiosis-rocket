@@ -8,7 +8,7 @@ use rocket::response::Redirect;
 use rocket::response::Flash;
 
 use super::{DbConn,TemplateDir};
-use products::Product;
+use crate::products::Product;
 
 #[derive(FromForm, Serialize)]
 pub struct User {

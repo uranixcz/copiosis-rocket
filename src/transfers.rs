@@ -7,7 +7,7 @@ use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
 use rocket::response::Flash;
 
-use users::User;
+use crate::users::User;
 use super::{DbConn,TemplateDir};
 
 #[derive(Serialize)]
