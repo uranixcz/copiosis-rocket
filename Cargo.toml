@@ -4,11 +4,15 @@ version = "0.2.2"
 authors = ["Michal Mauser <michal.mauser@zeitgeistmovement.cz>"]
 edition = "2018"
 
+[features]
+default = ["gui"]
+gui = ["webbrowser"]
+
 [dependencies]
 rocket = "0.4.0"
 serde = "1.0"
 serde_derive = "1.0"
-webbrowser = "0.5.2"
+webbrowser = { version = "0.5.2", optional = true }
 
 [dependencies.rocket_contrib]
 version = "0.4.0"

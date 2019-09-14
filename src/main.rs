@@ -30,6 +30,7 @@ use rusqlite::Connection;
 use rocket_contrib::templates::Template;
 use rocket::request::FlashMessage;
 use rocket::fairing::AdHoc;
+#[cfg(feature = "gui")]
 use webbrowser;
 
 mod users;
@@ -75,10 +76,11 @@ fn rocket() -> Rocket {
         transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer,
         users::addproduct, users::product_page, products::product_producers, users::fame]);
 
-    println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    println!("Please open http://localhost:8000 in web browser.\n");
-    webbrowser::open("http://localhost:8000").ok();
-
+    #[cfg(feature = "gui")] {
+        println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        println!("Please open http://localhost:8000 in web browser.\n");
+        webbrowser::open("http://localhost:8000").ok();
+    }
     rct
 }
 
