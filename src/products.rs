@@ -1,5 +1,5 @@
 //use std::sync::Mutex;
-//use rusqlite::Connection;
+use rusqlite::params;
 use rocket::request::Form;
 use rocket_contrib::templates::Template;
 use rocket::State;
@@ -53,15 +53,15 @@ pub fn product_page(product_id: i64, db_conn: State<DbConn>) -> Template {
     let tmpconn = db_conn.lock()
         .expect("db connection lock");
     let product: User = tmpconn.query_row("SELECT id, name
-    FROM products WHERE id = $1", &[&product_id],
+    FROM products WHERE id = $1", [&product_id],
                                              |row| {
-                                                 User {
-                                                     id: row.get(0),
-                                                     name: row.get(1),
+                                                 Ok(User {
+                                                     id: row.get(0)?,
+                                                     name: row.get(1)?,
                                                      nbr: 0.0,
                                                      fame: 0.0,
                                                      time_created: String::new()
-                                                 }
+                                                 })
                                              }).unwrap_or(User {
         id: 0,
         name: String::new(),
@@ -92,13 +92,13 @@ pub fn product_producers(product_id: i64, db_conn: State<DbConn>) -> Template {
         ORDER BY name;")
         .unwrap();
     {
-        let iter = stmt.query_map(&[&product_id], |row| {
-            Product {
-                id: row.get(0), //it has to go here because of template used
-                name: row.get(1),
-                gateway: row.get(2),
-                benefit: row.get(3),
-                time_created: row.get(4),
+        let iter = stmt.query_map([&product_id], |row| {
+            Ok(Product {
+                id: row.get(0)?, //it has to go here because of template used
+                name: row.get(1)?,
+                gateway: row.get(2)?,
+                benefit: row.get(3)?,
+                time_created: row.get(4)?,
                 resabundance: 0.0,
                 beneficiaries: 0.0,
                 producers: 0.0,
@@ -111,7 +111,7 @@ pub fn product_producers(product_id: i64, db_conn: State<DbConn>) -> Template {
                 chb: 0.0,
                 humanben: 0.0,
                 user_id: 0,
-            }
+            })
         }).unwrap();
         for i in iter {
             vec.push(i.unwrap());
@@ -133,7 +133,7 @@ pub fn addproduct(product: Form<User>, db_conn: State<DbConn>, templatedir: Stat
     resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben)
     VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
-                        &[&p.name, &0, &0,
+                        params![&p.name, &0, &0,
                             &0, &0, &0, &0, &0, &0, &0,
                             &0, &0, &0, &0])
             .expect("insert single entry into products table");
@@ -145,7 +145,7 @@ pub fn addproduct(product: Form<User>, db_conn: State<DbConn>, templatedir: Stat
     resabundance = $4, beneficiaries = $5, producers = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
     ceb = $11, envben = $12, chb = $13, humanben = $14
     WHERE id = $15",
-                        &[&p.name, &0, &0,
+                        params![&p.name, &0, &0,
                             &0, &0, &0, &0, &0, &0, &0,
                             &0, &0, &0, &0, &p.id])
             .expect("update entry in products table");
@@ -163,13 +163,13 @@ pub fn products(db_conn: State<DbConn>) -> Template {
         .prepare("SELECT id, name, gateway, benefit, time_created FROM products ORDER BY name")
         .unwrap();
 
-    let product_iter = stmt.query_map(&[], |row| {
-        Product {
-            id: row.get(0),
-            name: row.get(1),
-            gateway: row.get(2),
-            benefit: row.get(3),
-            time_created: row.get(4),
+    let product_iter = stmt.query_map([], |row| {
+        Ok(Product {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            gateway: row.get(2)?,
+            benefit: row.get(3)?,
+            time_created: row.get(4)?,
             resabundance: 0.0,
             beneficiaries: 0.0,
             producers: 0.0,
@@ -182,7 +182,7 @@ pub fn products(db_conn: State<DbConn>) -> Template {
             chb: 0.0,
             humanben: 0.0,
             user_id: 0
-        }
+        })
     }).unwrap();
 
     let mut vec = Vec::new();

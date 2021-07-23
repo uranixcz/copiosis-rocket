@@ -1,5 +1,5 @@
 //use std::sync::Mutex;
-//use rusqlite::Connection;
+use rusqlite::params;
 use rocket::request::Form;
 use rocket_contrib::templates::Template;
 use rocket::State;
@@ -46,7 +46,7 @@ pub fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<Temp
 
     tmpconn.execute("INSERT INTO users (name, NBR, password, time_created)\
     VALUES ($1, $2, $3, datetime('now', 'localtime'))",
-                    &[&user.name, &0, &"0"])
+                    params![&user.name, &0, &"0"])
         .expect("insert single entry into products table");
 
     Flash::success(Redirect::to("/"),
@@ -69,14 +69,14 @@ pub fn users(db_conn: State<DbConn>) -> Template {
         .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY name")
         .unwrap();
 
-    let user_iter = stmt.query_map(&[], |row| {
-        User {
-            id: row.get(0),
-            name: row.get(1),
-            nbr: row.get(2),
-            fame: row.get(4),
-            time_created: row.get(3),
-        }
+    let user_iter = stmt.query_map([], |row| {
+        Ok(User {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            nbr: row.get(2)?,
+            fame: row.get(4)?,
+            time_created: row.get(3)?,
+        })
     }).unwrap();
 
     let mut users = Vec::new();
@@ -87,14 +87,14 @@ pub fn users(db_conn: State<DbConn>) -> Template {
     let mut stmt = tmpconn
         .prepare("SELECT id, name FROM products WHERE id != 0 ORDER BY name")
         .unwrap();
-    let product_iter = stmt.query_map(&[], |row| {
-        User {
-            id: row.get(0),
-            name: row.get(1),
+    let product_iter = stmt.query_map([], |row| {
+        Ok(User {
+            id: row.get(0)?,
+            name: row.get(1)?,
             nbr: 0.0,
             fame: 0.0,
             time_created: String::new(),
-        }
+        })
     }).unwrap();
 
     let mut products = Vec::new();
@@ -113,27 +113,27 @@ pub fn product_page(userproduct: Form<UserProduct>, db_conn: State<DbConn>) -> T
     let product: Product = tmpconn.query_row("SELECT gateway,
     resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben
-    FROM user_products WHERE ProductID = $1 AND UserID = $2", &[&p.product_id, &p.user_id],
+    FROM user_products WHERE ProductID = $1 AND UserID = $2", [&p.product_id, &p.user_id],
                                              |row| {
-                                                 Product {
+                                                 Ok(Product {
                                                      id: p.product_id,
                                                      name: String::new(),
-                                                     gateway: row.get(0),
+                                                     gateway: row.get(0)?,
                                                      benefit: 0.0,
                                                      time_created: String::new(),
-                                                     resabundance: row.get(1),
-                                                     beneficiaries: row.get(2),
-                                                     producers: row.get(3),
-                                                     ccs: row.get(4),
-                                                     conssubben: row.get(5),
-                                                     cco: row.get(6),
-                                                     consobjben: row.get(7),
-                                                     ceb: row.get(8),
-                                                     envben: row.get(9),
-                                                     chb: row.get(10),
-                                                     humanben: row.get(11),
+                                                     resabundance: row.get(1)?,
+                                                     beneficiaries: row.get(2)?,
+                                                     producers: row.get(3)?,
+                                                     ccs: row.get(4)?,
+                                                     conssubben: row.get(5)?,
+                                                     cco: row.get(6)?,
+                                                     consobjben: row.get(7)?,
+                                                     ceb: row.get(8)?,
+                                                     envben: row.get(9)?,
+                                                     chb: row.get(10)?,
+                                                     humanben: row.get(11)?,
                                                      user_id: p.user_id,
-                                                 }
+                                                 })
                                              }).unwrap_or(Product {
         id: p.product_id,
         name: String::new(),
@@ -179,7 +179,7 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
     resabundance = $4, beneficiaries = $5, producers = $6, ccs = $7, conssubben = $8, cco = $9, consobjben = $10,
     ceb = $11, envben = $12, chb = $13, humanben = $14, ProductID = $15
     WHERE ProductID = $15 AND UserID = $1",
-                        &[&p.user_id, &p.gateway, &benefit,
+                        params![&p.user_id, &p.gateway, &benefit,
                             &p.resabundance, &p.beneficiaries, &p.producers, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
                             &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id]);
     if update_result.is_ok() && update_result.unwrap() == 1 {
@@ -191,7 +191,7 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
     resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben, ProductID)
     VALUES ($1, $2, $3, datetime('now', 'localtime'), $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
-                        &[&p.user_id, &p.gateway, &benefit,
+                        params![&p.user_id, &p.gateway, &benefit,
                             &p.resabundance, &p.beneficiaries, &p.producers, &p.ccs, &p.conssubben, &p.cco, &p.consobjben,
                             &p.ceb, &p.envben, &p.chb, &p.humanben, &p.id])
             .expect("insert single entry into products table");
@@ -209,14 +209,14 @@ pub fn fame(db_conn: State<DbConn>) -> Template {
         .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY fame DESC")
         .unwrap();
 
-    let user_iter = stmt.query_map(&[], |row| {
-        User {
-            id: row.get(0),
-            name: row.get(1),
-            nbr: row.get(2),
-            fame: row.get(4),
-            time_created: row.get(3),
-        }
+    let user_iter = stmt.query_map([], |row| {
+        Ok(User {
+            id: row.get(0)?,
+            name: row.get(1)?,
+            nbr: row.get(2)?,
+            fame: row.get(4)?,
+            time_created: row.get(3)?,
+        })
     }).unwrap();
 
     let users: Vec<User> = user_iter.map(|x| x.unwrap()).collect();

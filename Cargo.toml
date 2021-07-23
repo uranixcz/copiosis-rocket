@@ -21,7 +21,7 @@ features = ["handlebars_templates"]
 
 [dependencies.rusqlite]
 features = ["bundled"]
-version = "0.14"
+version = "0.25"
 
 [package.metadata.android]
 build_targets = [ "armv7-linux-androideabi" ]

@@ -7,7 +7,7 @@ pub fn init_database(conn: &Connection) {
         println!("Upgrading DB version {}, stand by...", version);
     }
 
-    let mut db_version:i64 = conn.query_row("PRAGMA user_version",&[], |row| {row.get(0)})
+    let mut db_version:i64 = conn.query_row("PRAGMA user_version",[], |row| {row.get(0)})
         .expect("lookup db table version");
     if db_version == 0 {
         upgrade_message(0);
@@ -17,7 +17,7 @@ pub fn init_database(conn: &Connection) {
                     NBR             REAL NOT NULL,
                     password        TEXT,
                     time_created    TEXT NOT NULL
-                    )", &[])
+                    )", [])
             .expect("create table");
 
         conn.execute("CREATE TABLE products (
@@ -37,7 +37,7 @@ pub fn init_database(conn: &Connection) {
                     envben  REAL,
                     chb  REAL,
                     humanben REAL
-                )", &[])
+                )", [])
             .expect("create table");
 
         conn.execute("CREATE TABLE transfers (
@@ -50,10 +50,10 @@ pub fn init_database(conn: &Connection) {
                     GNBR       REAL NOT NULL,
                     time_created    TEXT NOT NULL,
                     comment    TEXT
-                )", &[])
+                )", [])
             .expect("create table");
         conn.execute("INSERT OR IGNORE INTO users (id, name, NBR, password, time_created)
-        VALUES (0, '-', 0, 0, datetime('now','localtime'))", &[])
+        VALUES (0, '-', 0, 0, datetime('now','localtime'))", [])
             .expect("insert single entry into table");
 
         conn.execute("CREATE TABLE user_products (
@@ -74,7 +74,7 @@ pub fn init_database(conn: &Connection) {
                     chb  REAL,
                     humanben REAL,
                     PRIMARY KEY ( ProductID, UserID)
-                )", &[])
+                )", [])
             .expect("create table");
 
         db_version = 4;
@@ -83,9 +83,9 @@ pub fn init_database(conn: &Connection) {
     if db_version < 4 { panic!("DB upgrade not implemented!")}
     if db_version == 4 {
         upgrade_message(4);
-        conn.execute("ALTER TABLE users ADD COLUMN fame REAL NOT NULL DEFAULT 0", &[]).expect("alter db add column");
-        conn.execute("UPDATE users SET fame = NBR", &[]).expect("update users fame");
-        conn.execute("PRAGMA user_version = 5", &[])
+        conn.execute("ALTER TABLE users ADD COLUMN fame REAL NOT NULL DEFAULT 0", []).expect("alter db add column");
+        conn.execute("UPDATE users SET fame = NBR", []).expect("update users fame");
+        conn.execute("PRAGMA user_version = 5", [])
             .expect("alter db version");
         db_version = 5;
     }
