@@ -104,15 +104,15 @@ pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Te
     }
     let product_params:(f64, f64) = product_query.unwrap();
 
-    let nbr: f64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
-                                     [&transfer.consumer], |row| { row.get(0) })
-        .expect("get nbr for user");
-
-    if nbr - product_params.0 * transfer.amount < 0.0 && transfer.consumer != 0 {
-        return Flash::success(Redirect::to("/"),
-                              if templatedir.0 { "Konzument nemá dostatek NBR." }
-                                  else { "Consumer has insufficient NBR." })
-    }
+    // let nbr: f64 = tmpconn.query_row("SELECT NBR FROM users WHERE id = $1",
+    //                                  [&transfer.consumer], |row| { row.get(0) })
+    //     .expect("get nbr for user");
+    //
+    // if nbr - product_params.0 * transfer.amount < 0.0 && transfer.consumer != 0 {
+    //     return Flash::success(Redirect::to("/"),
+    //                           if templatedir.0 { "Konzument nemá dostatek NBR." }
+    //                               else { "Consumer has insufficient NBR." })
+    // }
 
     if transfer.producer == transfer.consumer {
         return Flash::success(Redirect::to("/"),
@@ -169,7 +169,7 @@ pub fn transfers(conn: State<DbConn>) -> Template {
         LEFT   JOIN users t31 ON t31.id = t2.ConsumerID
         LEFT   JOIN users t32 ON t32.id = t2.ProducerID
         LEFT   JOIN products p ON p.id = t2.ProductID
-        ORDER BY t2.time_created DESC LIMIT 30;")
+        ORDER BY t2.time_created DESC;")
         .unwrap();
     {
         let transfer_iter = stmt.query_map([], |row| {
