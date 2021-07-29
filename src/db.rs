@@ -1,4 +1,4 @@
-use rusqlite::Connection;
+use rocket_sync_db_pools::rusqlite::Connection;
 
 #[allow(unused_assignments)]
 pub fn init_database(conn: &Connection) {

@@ -9,19 +9,18 @@ default = ["gui"]
 gui = ["webbrowser"]
 
 [dependencies]
-rocket = "0.4.0"
-serde = "1.0"
-serde_derive = "1.0"
+rocket = "0.5.0-rc.1"
 webbrowser = { version = "0.5.2", optional = true }
 
-[dependencies.rocket_contrib]
-version = "0.4.0"
+[dependencies.rocket_dyn_templates]
+version = "0.1.0-rc.1"
 default-features = false
-features = ["handlebars_templates"]
+features = ["handlebars"]
 
-[dependencies.rusqlite]
-features = ["bundled"]
-version = "0.25"
+[dependencies.rocket_sync_db_pools]
+version = "0.1.0-rc.1"
+default-features = false
+features = ["sqlite_pool"]
 
 [package.metadata.android]
 build_targets = [ "armv7-linux-androideabi" ]

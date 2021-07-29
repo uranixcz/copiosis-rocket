@@ -1,22 +1,24 @@
 //use std::sync::Mutex;
-use rusqlite::params;
-use rocket::request::Form;
-use rocket_contrib::templates::Template;
+use rocket_sync_db_pools::rusqlite::params;
+use rocket::form::Form;
+use rocket_dyn_templates::Template;
 use rocket::State;
 use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
 use rocket::response::Flash;
+use rocket::serde::Serialize;
 
 use crate::users::User;
 use super::{DbConn,TemplateDir};
 
 #[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
 struct ContextTransfer {
     users: Vec<User>,
     products: Vec<User>,
 }
 
-#[derive(FromForm, Serialize)]
+#[derive(FromForm)]
 pub struct Transfer {
     producer: i64,
     consumer: i64,
@@ -26,6 +28,7 @@ pub struct Transfer {
 }
 
 #[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
 struct NamedTransfer {
     id: i64,
     producer: String,
@@ -39,9 +42,8 @@ struct NamedTransfer {
 }
 
 #[get("/transfer")]
-pub fn transfer_page(conn: State<DbConn> ) -> Template {
-    let tmpconn = conn.lock()
-        .expect("db connection lock");
+pub async fn transfer_page(conn: &State<DbConn> ) -> Template {
+    let tmpconn = conn.lock().await;
 
     let mut users = Vec::new();
     let mut stmt = tmpconn
@@ -90,11 +92,10 @@ pub fn transfer_page(conn: State<DbConn> ) -> Template {
 }
 
 #[post("/transfer", data = "<post>")]
-pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub async fn transfer(conn: &State<DbConn>, post: Form<Transfer>, templatedir: &State<TemplateDir>) -> Flash<Redirect> {
     let transfer = post.into_inner();
 
-    let tmpconn = conn.lock()
-        .expect("db connection lock");
+    let tmpconn = conn.lock().await;
 
     let product_query = tmpconn.query_row("SELECT gateway, benefit FROM user_products WHERE ProductID = $1 AND UserID = $2",
                                           [&transfer.product, &transfer.producer], |row| { Ok((row.get(0)?, row.get(1)?)) });
@@ -148,9 +149,8 @@ pub fn transfer(conn: State<DbConn>, post: Form<Transfer>, templatedir: State<Te
 }
 
 #[get("/transfers")]
-pub fn transfers(conn: State<DbConn>) -> Template {
-    let tmpconn = conn.lock()
-        .expect("db connection lock");
+pub async fn transfers(conn: &State<DbConn>) -> Template {
+    let tmpconn = conn.lock().await;
 
     let mut transfers = Vec::new();
     let mut stmt = tmpconn
@@ -194,10 +194,9 @@ pub fn transfers(conn: State<DbConn>) -> Template {
 }
 
 #[get("/deletetransfer/<transfer_id>")]
-pub fn delete_transfer(conn: State<DbConn>, transfer_id: i64, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub async fn delete_transfer(conn: &State<DbConn>, transfer_id: i64, templatedir: &State<TemplateDir>) -> Flash<Redirect> {
 
-    let tmpconn = conn.lock()
-        .expect("db connection lock");
+    let tmpconn = conn.lock().await;
 
     let transfer_params: (i64, i64, f64, f64) = tmpconn.query_row(
         "SELECT ProducerID, ConsumerID, NBR, GNBR FROM transfers WHERE id = $1",

@@ -15,23 +15,19 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use] extern crate rocket;
-extern crate rocket_contrib;
-extern crate rusqlite;
 
 //#[cfg(test)] mod tests;
 
-use std::sync::Mutex;
-use rocket::Rocket;
-use rusqlite::Connection;
-#[macro_use] extern crate serde_derive;
-use rocket_contrib::templates::Template;
+use rocket::tokio::sync::Mutex;
+use rocket_sync_db_pools::rusqlite::Connection;
+use rocket::serde::Deserialize;
+use rocket_dyn_templates::Template;
 use rocket::request::FlashMessage;
 use rocket::fairing::AdHoc;
 #[cfg(feature = "gui")]
 use webbrowser;
+use rocket::figment;
 
 mod users;
 //use users::*;
@@ -42,12 +38,14 @@ mod transfers;
 mod db;
 
 pub type DbConn = Mutex<Connection>;
+#[derive(Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct TemplateDir(bool);
 
 #[get("/")]
 fn index(flash: Option<FlashMessage>) -> Template {
     match flash {
-        Some(x) => Template::render("index", x.msg()),
+        Some(x) => Template::render("index", x.message()),
         _ => Template::render("index", "")
     }
     /*let mut context = HashMap::new();
@@ -58,32 +56,31 @@ fn index(flash: Option<FlashMessage>) -> Template {
     Template::render("login", &context)*/
 }
 
-fn rocket() -> Rocket {
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
     let conn = Connection::open("copiosis.sqlite").expect("db file");
 
     // Initialize the `entries` table in the database.
     db::init_database(&conn);
 
-    let rct = rocket::ignite()
+    //let rct = rocket::ignite()
+    let mut rct = rocket::build()
         .attach(Template::fairing())
-        .attach(AdHoc::on_attach("template_dir",|rocket| {
-            println!("Adding token managed state from config...");
-            let token_val = rocket.config().get_str("template_dir").unwrap_or("").to_string();
-            Ok(rocket.manage(TemplateDir(token_val.ne(""))))
-        }))
         .manage(Mutex::new(conn))
         .mount("/", routes![index, users::adduser_page, products::addproduct_page, products::addproduct, products::product_page, users::adduser,
         transfers::transfer_page, transfers::transfer, transfers::transfers, users::users, products::products, transfers::delete_transfer,
         users::addproduct, users::product_page, products::product_producers, users::fame]);
 
     #[cfg(feature = "gui")] {
-        println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-        println!("Please open http://localhost:8000 in web browser.\n");
-        webbrowser::open("http://localhost:8000").ok();
+        rct = rct.attach(AdHoc::on_liftoff("Liftoff Printer", |_| Box::pin(async move {
+            println!("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+            println!("Please open http://localhost:8000 in web browser.\n");
+            webbrowser::open("http://localhost:8000").ok();
+        })))
     }
-    rct
-}
 
-fn main() {
-    rocket().launch();
+    let conf: Result<Vec<String>, figment::Error> = rct.figment().extract_inner("template_dir");
+    rct.manage(TemplateDir(if let Ok(dir) = conf {!dir.is_empty()} else {false}))
+        .launch().await?;
+    Ok(())
 }

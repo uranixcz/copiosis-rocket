@@ -1,16 +1,18 @@
 //use std::sync::Mutex;
-use rusqlite::params;
-use rocket::request::Form;
-use rocket_contrib::templates::Template;
+use rocket_sync_db_pools::rusqlite::params;
+use rocket::form::Form;
+use rocket_dyn_templates::Template;
 use rocket::State;
 use rocket::response::Redirect;
 //use rocket::request::FlashMessage;
 use rocket::response::Flash;
+use rocket::serde::Serialize;
 
 use super::{DbConn,TemplateDir};
 use crate::products::Product;
 
 #[derive(FromForm, Serialize)]
+#[serde(crate = "rocket::serde")]
 pub struct User {
     pub id: i64,
     pub name: String,
@@ -39,10 +41,9 @@ pub fn adduser_page() -> Template {
 }
 
 #[post("/adduser", data = "<user>")]
-pub fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
+pub async fn adduser(user: Form<User>, db_conn: &State<DbConn>, templatedir: &State<TemplateDir>) -> Flash<Redirect> {
     let user = user.into_inner();
-    let tmpconn = db_conn.lock()
-        .expect("db connection lock");
+    let tmpconn = db_conn.lock().await;
 
     tmpconn.execute("INSERT INTO users (name, NBR, password, time_created)\
     VALUES ($1, $2, $3, datetime('now', 'localtime'))",
@@ -55,16 +56,16 @@ pub fn adduser(user: Form<User>, db_conn: State<DbConn>, templatedir: State<Temp
 }
 
 #[get("/users")]
-pub fn users(db_conn: State<DbConn>) -> Template {
+pub async fn users(db_conn: &State<DbConn>) -> Template {
 
     #[derive(Serialize)]
+    #[serde(crate = "rocket::serde")]
     struct UsersPage {
         users: Vec<User>,
         products: Vec<User>
     }
 
-    let tmpconn = db_conn.lock()
-        .expect("db connection lock");
+    let tmpconn = db_conn.lock().await;
     let mut stmt = tmpconn
         .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY name")
         .unwrap();
@@ -106,10 +107,9 @@ pub fn users(db_conn: State<DbConn>) -> Template {
 }
 
 #[post("/user/product", data = "<userproduct>")]
-pub fn product_page(userproduct: Form<UserProduct>, db_conn: State<DbConn>) -> Template {
+pub async fn product_page(userproduct: Form<UserProduct>, db_conn: &State<DbConn>) -> Template {
     let p = userproduct.into_inner();
-    let tmpconn = db_conn.lock()
-        .expect("db connection lock");
+    let tmpconn = db_conn.lock().await;
     let product: Product = tmpconn.query_row("SELECT gateway,
     resabundance, beneficiaries, producers, ccs, conssubben, cco, consobjben,
     ceb, envben, chb, humanben
@@ -158,9 +158,8 @@ pub fn product_page(userproduct: Form<UserProduct>, db_conn: State<DbConn>) -> T
 }
 
 #[post("/user/addproduct", data = "<product>")]
-pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: State<TemplateDir>) -> Flash<Redirect> {
-    let tmpconn = db_conn.lock()
-        .expect("db connection lock");
+pub async fn addproduct(product: Form<Product>, db_conn: &State<DbConn>, templatedir: &State<TemplateDir>) -> Flash<Redirect> {
+    let tmpconn = db_conn.lock().await;
 
     let p = product.into_inner();
 
@@ -202,9 +201,8 @@ pub fn addproduct(product: Form<Product>, db_conn: State<DbConn>, templatedir: S
 }
 
 #[get("/fame")]
-pub fn fame(db_conn: State<DbConn>) -> Template {
-    let tmpconn = db_conn.lock()
-        .expect("db connection lock");
+pub async fn fame(db_conn: &State<DbConn>) -> Template {
+    let tmpconn = db_conn.lock().await;
     let mut stmt = tmpconn
         .prepare("SELECT id, name, NBR, time_created, fame FROM users WHERE id != 0 ORDER BY fame DESC")
         .unwrap();
